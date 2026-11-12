@@ -1,0 +1,107 @@
+// Repositório de Documentos e Estudos - Observatório Paranaense do Saneamento
+window.OPS_REPOSITORIO = [
+  {
+    titulo: "Plano Regional de Saneamento Básico - MRAE 1 Centro-Litoral (533 páginas)",
+    autor: "Governo do Estado do Paraná / SECID / FAEPE / MRAE 1",
+    ano: 2023,
+    tipo: "Plano Regional (PRSB)",
+    tema: "agua",
+    tema_sec: "esgoto",
+    resumo: "Diagnóstico completo, programas, metas e investimentos para abastecimento de água, esgotamento sanitário e DMAPU para os 36 municípios da Microrregião Centro-Litoral (RMC e Litoral Paranaense).",
+    municipios: ["Curitiba", "São José Dos Pinhais", "Colombo", "Paranaguá", "Araucária", "Campo Largo", "Fazenda Rio Grande", "Pinhais", "Piraquara", "Guaratuba", "Matinhos", "Pontal Do Paraná", "Antonina", "Morretes", "Guaraqueçaba", "Doutor Ulysses", "Adrianópolis"],
+    arquivo: "PRSB_MRAE1_Centro-Litoral.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "SECID / MRAE 1"
+  },
+  {
+    titulo: "Plano Regional de Saneamento Básico - MRAE 2 Centro-Leste (1.072 páginas)",
+    autor: "Governo do Estado do Paraná / SECID / MRAE 2",
+    ano: 2023,
+    tipo: "Plano Regional (PRSB)",
+    tema: "esgoto",
+    tema_sec: "agua",
+    resumo: "Diagnóstico integrado e planejamento estratégico para os 155 municípios do Centro-Leste, Campos Gerais, Norte e Centro-Sul do Paraná. Contempla detalhamento de metas até 2033.",
+    municipios: ["Londrina", "Ponta Grossa", "Guarapuava", "Apucarana", "Arapongas", "Castro", "Telêmaco Borba", "Irati", "União da Vitória", "Rolândia", "Cambé"],
+    arquivo: "PRSB_MRAE2_Centro-Leste.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "SECID / MRAE 2"
+  },
+  {
+    titulo: "Plano Regional de Saneamento Básico - MRAE 3 Oeste (1.290 páginas)",
+    autor: "Governo do Estado do Paraná / SECID / MRAE 3",
+    ano: 2023,
+    tipo: "Plano Regional (PRSB)",
+    tema: "agua",
+    tema_sec: "drenagem",
+    resumo: "Plano abrangente para 208 municípios do Oeste, Sudoeste, Noroeste e Norte Central paranaense. Aborda universalização, segurança hídrica e combate à erosão em áreas agrícolas.",
+    municipios: ["Maringá", "Cascavel", "Foz Do Iguaçu", "Toledo", "Umuarama", "Campo Mourão", "Paranavaí", "Pato Branco", "Francisco Beltrão", "Cianorte"],
+    arquivo: "PRSB_MRAE3_Oeste.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "SECID / MRAE 3"
+  },
+  {
+    titulo: "Aditivo PRSB 2025 - Resolução da 11ª Assembleia Geral MRAE 1 Centro-Litoral (67 p.)",
+    autor: "Assembleia MRAE 1 / SECID / AGEPAR",
+    ano: 2025,
+    tipo: "Resolução Aditiva",
+    tema: "esgoto",
+    tema_sec: "agua",
+    resumo: "Readequação dos contratos da Sanepar para atendimento ao Marco Legal do Saneamento (Lei 14.026/2020), normas de referência da ANA e investimentos extraordinários para municípios prioritários.",
+    municipios: ["Curitiba", "Antonina", "Doutor Ulysses", "Paranaguá"],
+    arquivo: "Aditivo_PRSB_2025_Resolucao_MRAE1_Centro-Litoral.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "Assembleia Geral MRAE 1"
+  },
+  {
+    titulo: "Aditivo PRSB 2025 - Resolução da 11ª Assembleia Geral MRAE 2 Centro-Leste (102 p.)",
+    autor: "Assembleia MRAE 2 / SECID / AGEPAR",
+    ano: 2025,
+    tipo: "Resolução Aditiva",
+    tema: "esgoto",
+    tema_sec: "agua",
+    resumo: "Homologação do novo cronograma de investimentos e expansão das redes coletoras de esgoto nos municípios com cobertura crítica do Centro-Leste.",
+    municipios: ["Londrina", "Ponta Grossa", "Guarapuava"],
+    arquivo: "Aditivo_PRSB_2025_Resolucao_MRAE2_Centro-Leste.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "Assembleia Geral MRAE 2"
+  },
+  {
+    titulo: "Aditivo PRSB 2025 - Resolução da 11ª Assembleia Geral MRAE 3 Oeste (129 p.)",
+    autor: "Assembleia MRAE 3 / SECID / AGEPAR",
+    ano: 2025,
+    tipo: "Resolução Aditiva",
+    tema: "esgoto",
+    tema_sec: "drenagem",
+    resumo: "Atualização das metas de esgotamento sanitário e manejo de águas pluviais, integrando autarquias municipais independentes e saneamento rural.",
+    municipios: ["Maringá", "Cascavel", "Foz Do Iguaçu", "Toledo"],
+    arquivo: "Aditivo_PRSB_2025_Resolucao_MRAE3_Oeste.pdf",
+    url: "https://www.secid.pr.gov.br/",
+    instituicao: "Assembleia Geral MRAE 3"
+  },
+  {
+    titulo: "Plano Estadual de Resíduos Sólidos do Paraná (PERS-PR)",
+    autor: "Secretaria do Desenvolvimento Sustentável do Paraná (SEDEST) / Instituto Água e Terra (IAT)",
+    ano: 2021,
+    tipo: "Plano Estadual",
+    tema: "residuos",
+    tema_sec: "esgoto",
+    resumo: "Diretrizes estaduais para a gestão e gerenciamento de resíduos sólidos urbanos, industriais e de saneamento, incluindo erradicação de vazadouros e fomento a consórcios intermunicipais.",
+    municipios: ["Todos os 399 municípios"],
+    arquivo: "PERS_PR_2021.pdf",
+    url: "https://www.iat.pr.gov.br/",
+    instituicao: "SEDEST / IAT"
+  },
+  {
+    titulo: "Caderno Temático: Drenagem e Manejo de Águas Pluviais Urbanas no Paraná",
+    autor: "Instituto Água e Terra (IAT) / Gerência de Recursos Hídricos",
+    ano: 2024,
+    tipo: "Relatório Técnico",
+    tema: "drenagem",
+    tema_sec: "agua",
+    resumo: "Normatização técnica para bacias de amortecimento, controle de cheias e prevenção a inundações nas bacias dos rios Iguaçu, Tibagi, Ivaí e Paraná.",
+    municipios: ["Curitiba", "União da Vitória", "Rio Negro", "Londrina", "Maringá"],
+    arquivo: "Caderno_DMAPU_PR_2024.pdf",
+    url: "https://www.iat.pr.gov.br/",
+    instituicao: "IAT"
+  }
+];

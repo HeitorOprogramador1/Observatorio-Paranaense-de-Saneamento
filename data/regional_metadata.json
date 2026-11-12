@@ -1,0 +1,177 @@
+{
+  "estado": "Paraná",
+  "total_municipios": 399,
+  "populacao_total_2022": 11675661,
+  "marco_legal": {
+    "ano_meta": 2033,
+    "meta_agua_percentual": 99.0,
+    "meta_esgoto_percentual": 90.0,
+    "legislacao": "Lei Federal nº 11.445/2007 atualizada pela Lei Federal nº 14.026/2020 e Lei Complementar Estadual nº 237/2021"
+  },
+  "capex_total_pr_reais": 15502452630,
+  "microrregioes": [
+    {
+      "id": "MRAE1",
+      "nome": "MRAE 1 - Centro-Litoral",
+      "sede_referencia": "Curitiba",
+      "municipios_qtd": 36,
+      "populacao_2022": 4036077,
+      "taxa_urbanizacao_media": 89.2,
+      "atendimento_agua_total_medio": 84.51,
+      "atendimento_esgoto_total_medio": 50.40,
+      "perdas_distribuicao_media": 32.73,
+      "consumo_per_capita_medio": 118.4,
+      "capex_total": 5686719637,
+      "capex_agua": 2590484155,
+      "capex_esgoto": 3096235482,
+      "capex_seguranca_hidrica": 944348900,
+      "drenagem_investimento_total": 8261849619,
+      "drenagem_desafios": "Cheias rápidas de alta energia na encosta da Serra do Mar e influência de marés no litoral plano (Paranaguá, Antonina, Guaratuba, Morretes).",
+      "residuos_foco": "Grandes volumes metropolitanos, aterros de grande porte e consórcios na RMC e Litoral.",
+      "status_universalizacao": "Água com alta cobertura nas sedes municipais; maior rede de esgoto estadual em volume, mas com déficits agudos no Vale do Ribeira (ex: Doutor Ulysses, Adrianópolis) e Litoral.",
+      "aditivo_2025_status": "11ª Assembleia Geral: Readequação das metas e contratos da Sanepar perante AGEPAR e ANA; apoio financeiro extraordinário para Doutor Ulysses e Antonina; Diagnóstico de Saneamento Rural com SESA."
+    },
+    {
+      "id": "MRAE2",
+      "nome": "MRAE 2 - Centro-Leste",
+      "sede_referencia": "Ponta Grossa / Londrina / Guarapuava",
+      "municipios_qtd": 155,
+      "populacao_2022": 3695149,
+      "taxa_urbanizacao_media": 78.4,
+      "atendimento_agua_total_medio": 84.30,
+      "atendimento_esgoto_total_medio": 36.30,
+      "perdas_distribuicao_media": 27.96,
+      "consumo_per_capita_medio": 112.1,
+      "capex_total": 4099029696,
+      "capex_agua": 2274025921,
+      "capex_esgoto": 1653403908,
+      "capex_seguranca_hidrica": 720000000,
+      "drenagem_investimento_total": 7563000000,
+      "drenagem_desafios": "Inundações por transbordamento de grandes rios de planície (Bacia do Rio Iguaçu, Tibagi e Ivaí), com histórico de enchentes severas em União da Vitória, Rio Negro e Porto Amazonas.",
+      "residuos_foco": "Articulação de consórcios intermunicipais para encerramento de lixões e destinação consorciada em aterros regionais.",
+      "status_universalizacao": "Elevada cobertura urbana de água; grande déficit de esgotamento sanitário em cidades de médio e pequeno porte.",
+      "aditivo_2025_status": "Readequação de investimentos Sanepar para atendimento das metas do Marco Legal e expansão rural integrada."
+    },
+    {
+      "id": "MRAE3",
+      "nome": "MRAE 3 - Oeste",
+      "sede_referencia": "Cascavel / Foz do Iguaçu / Maringá",
+      "municipios_qtd": 208,
+      "populacao_2022": 3944435,
+      "taxa_urbanizacao_media": 81.6,
+      "atendimento_agua_total_medio": 91.58,
+      "atendimento_esgoto_total_medio": 31.17,
+      "perdas_distribuicao_media": 23.62,
+      "consumo_per_capita_medio": 126.7,
+      "capex_total": 5716703297,
+      "capex_agua": 2479056586,
+      "capex_esgoto": 2305502001,
+      "capex_seguranca_hidrica": 932144709,
+      "drenagem_investimento_total": 8074000000,
+      "drenagem_desafios": "Erosão do solo, assoreamento de cursos d'água em bacias agrícolas e exigência de microdrenagem com curvas de nível e galerias integradas às bacias dos Rios Paraná, Piquiri e Ivaí.",
+      "residuos_foco": "Consórcios consolidados no Oeste/Sudoeste (ex: municípios lindeiros ao Lago de Itaipu), avanço em coleta seletiva e compostagem agroindustrial.",
+      "status_universalizacao": "Melhor índice de cobertura de água do estado (91,6%) e menores perdas (23,6%), porém com mais de 140 municípios necessitando de expansão acelerada da rede de esgoto.",
+      "aditivo_2025_status": "Revisão tarifária e cronograma integrado AGEPAR/Sanepar, monitoramento de sistemas operados por autarquias municipais independentes e saneamento rural."
+    }
+  ],
+  "eixos_saneamento": {
+    "agua": {
+      "titulo": "Abastecimento de Água Potável",
+      "icone": "droplet",
+      "meta_universalizacao": "99% da população até 2033",
+      "situacao_pr": "Cobertura urbana consolidada em quase todo o Paraná (>95%), porém com lacunas em áreas periurbanas e rurais, totalizando média estadual de ~87%. Perdas médias de 26,8% (abaixo da média nacional de ~40%, mas com oportunidade de recuperação de receita e sustentabilidade hídrica).",
+      "pilares": [
+        "Segurança Hídrica e Captação (mananciais superficiais e subterrâneos)",
+        "Planos de Segurança da Água (PSA)",
+        "Controle Ativo de Perdas e Eficiência Energética",
+        "Atendimento Rural e Comunidades Isoladas"
+      ]
+    },
+    "esgoto": {
+      "titulo": "Esgotamento Sanitário",
+      "icone": "waves",
+      "meta_universalizacao": "90% da população até 2033",
+      "situacao_pr": "O principal desafio estrutural do Estado. Apenas as regiões metropolitanas e polos regionais possuem cobertura próxima ou superior a 70%. Mais de 200 municípios possuem atendimento inferior a 30% da população total. As deliberações de 2025 priorizam contratos aditivos de concessão da Sanepar para acelerar os investimentos até 2033.",
+      "pilares": [
+        "Expansão de Redes Coletoras e Interceptores",
+        "Modernização e Ampliação de ETEs com Alto Padrão de Remoção de DBO",
+        "Soluções Individuais Regulamentadas (Fossas sépticas com limpeza periódica)",
+        "Universalização em Municípios Críticos (Antonina, Dr. Ulysses, etc.)"
+      ]
+    },
+    "drenagem": {
+      "titulo": "Drenagem e Manejo de Águas Pluviais Urbanas (DMAPU)",
+      "icone": "cloud-rain",
+      "meta_universalizacao": "Redução do risco de inundação e universalização da micro e macrodrenagem estruturada",
+      "situacao_pr": "Previsto no Capítulo 8 do PRSB com investimento estimado de R$ 2.047 por habitante (~R$ 23,8 bilhões para o horizonte 2022-2052 no Paraná). Ações normatizadas pelas diretrizes do Instituto Água e Terra (IAT) para controle de erosão e galerias pluviais.",
+      "pilares": [
+        "Diretrizes do Instituto Água e Terra (IAT) para Galerias e Controle de Erosão",
+        "Soluções Baseadas na Natureza (SbN) e Bacias de Amortecimento",
+        "Zoneamento de Áreas de Inundação e Planos de Contingência",
+        "Integração do Sistema de Drenagem com o Esgotamento (combate a ligações clandestinas)"
+      ]
+    },
+    "residuos": {
+      "titulo": "Gestão de Resíduos Sólidos (PERS-PR)",
+      "icone": "recycle",
+      "meta_universalizacao": "100% Coleta Regular e Seletiva; 60% Consórcios; -30% Disposição em Aterros até 2038",
+      "situacao_pr": "Regulado pelo Plano Estadual de Resíduos Sólidos do Paraná (PERS-PR, 2021) e incorporado como plano correlato ao PRSB. Estabelece metas claras para consórcios intermunicipais, valorização de recicláveis, gestão de resíduos da construção civil (RCC) e destino seguro de lodos de ETA e ETE da Sanepar.",
+      "pilares": [
+        "Consórcios Públicos Intermunicipais (Meta: 60% dos municípios)",
+        "Universalização da Coleta Regular e da Coleta Seletiva (Meta: 100%)",
+        "Redução Gradual do Aterramento e Erradicação Definitiva de Vazadouros",
+        "Logística Reversa, Inventário de Resíduos Industriais e Valorização de Lodo"
+      ]
+    }
+  },
+  "documentos_oficiais": [
+    {
+      "nome": "Plano Regional de Saneamento Básico - MRAE 1 Centro-Litoral",
+      "arquivo": "PRSB_MRAE1_Centro-Litoral.pdf",
+      "paginas": 533,
+      "ano": 2023,
+      "orgao": "SECID / MRAE 1 / Governo do Paraná",
+      "descricao": "Diagnóstico completo, programas, investimentos, DMAPU e fichas municipais dos 36 municípios da Microrregião Centro-Litoral."
+    },
+    {
+      "nome": "Plano Regional de Saneamento Básico - MRAE 2 Centro-Leste",
+      "arquivo": "PRSB_MRAE2_Centro-Leste.pdf",
+      "paginas": 1072,
+      "ano": 2023,
+      "orgao": "SECID / MRAE 2 / Governo do Paraná",
+      "descricao": "Diagnóstico e plano estratégico para os 155 municípios do Centro-Leste, Campos Gerais, Centro-Sul e Norte do Paraná."
+    },
+    {
+      "nome": "Plano Regional de Saneamento Básico - MRAE 3 Oeste",
+      "arquivo": "PRSB_MRAE3_Oeste.pdf",
+      "paginas": 1290,
+      "ano": 2023,
+      "orgao": "SECID / MRAE 3 / Governo do Paraná",
+      "descricao": "Plano abrangente cobrindo os 208 municípios do Oeste, Sudoeste, Noroeste e Norte Central paranaense."
+    },
+    {
+      "nome": "Aditivo PRSB 2025 - Resolução 11ª Assembleia MRAE 1",
+      "arquivo": "Aditivo_PRSB_2025_Resolucao_MRAE1_Centro-Litoral.pdf",
+      "paginas": 67,
+      "ano": 2025,
+      "orgao": "SECID / AGEPAR / MRAE 1",
+      "descricao": "Readequação das metas e contratos da Sanepar, apoio à universalização em Antonina e Dr. Ulysses, e questionário do saneamento rural."
+    },
+    {
+      "nome": "Aditivo PRSB 2025 - Resolução 11ª Assembleia MRAE 2",
+      "arquivo": "Aditivo_PRSB_2025_Resolucao_MRAE2_Centro-Leste.pdf",
+      "paginas": 102,
+      "ano": 2025,
+      "orgao": "SECID / AGEPAR / MRAE 2",
+      "descricao": "Deliberações sobre cumprimento do Marco Legal, normas de referência da ANA e indicadores regulatórios AGEPAR."
+    },
+    {
+      "nome": "Aditivo PRSB 2025 - Resolução 11ª Assembleia MRAE 3",
+      "arquivo": "Aditivo_PRSB_2025_Resolucao_MRAE3_Oeste.pdf",
+      "paginas": 129,
+      "ano": 2025,
+      "orgao": "SECID / AGEPAR / MRAE 3",
+      "descricao": "Revisão e homologação das readequações da prestação de serviços regionalizados e saneamento rural das microrregiões do Oeste."
+    }
+  ]
+}

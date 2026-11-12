@@ -1,0 +1,395 @@
+<!doctype html>
+<html lang="pt-BR" data-theme="light">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>OPS Paraná · Observatório Paranaense do Saneamento</title>
+<meta name="description" content="Observatório Paranaense do Saneamento: planos regionais (PRSB), metas de universalização 2033, investimentos e participação cidadã nos 399 municípios do Paraná.">
+<link rel="icon" href="assets/logo/ops-icon.svg">
+<script>try{var t=localStorage.getItem("ops-tema");document.documentElement.setAttribute("data-theme",t==="dark"?"dark":"light")}catch(e){}</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<link rel="stylesheet" href="css/ops.css">
+<style>
+/* Estilos específicos para créditos institucionais no topo e rodapé */
+.credito-bloco{display:inline-flex; align-items:center; gap:14px; margin-left:auto}
+.credito-label{font-size:11px; color:var(--ink-3); text-transform:uppercase; letter-spacing:.04em; font-weight:600}
+.logo-irm{height:20px; width:auto; display:inline-block; vertical-align:middle; object-fit:contain}
+.logo-ap-mini{height:14px; width:auto; display:inline-block; vertical-align:middle; object-fit:contain}
+.logo-ap-escura{display:none !important}
+:root[data-theme="dark"] .logo-ap-clara{display:none !important}
+:root[data-theme="dark"] .logo-ap-escura{display:inline-block !important}
+:root[data-theme="dark"] .logo-irm{filter:brightness(0) invert(1) contrast(1.2)}
+.rod-elaborado{display:flex; align-items:center; gap:20px; flex-wrap:wrap; margin-left:auto}
+.rod-elaborado-label{font-size:var(--fs-xs); color:var(--ink-3); font-weight:600; text-transform:uppercase; letter-spacing:.03em}
+.rod-parceiro-logos{display:flex; align-items:center; gap:16px}
+.rod-parceiro-logos img.irm-rod{height:30px; width:auto}
+.rod-parceiro-logos img.ap-rod{height:20px; width:auto}
+:root[data-theme="dark"] .rod-parceiro-logos img.irm-rod{filter:brightness(0) invert(1)}
+</style>
+</head>
+<body>
+
+<a class="pular" href="#conteudo">Pular para o conteúdo</a>
+
+<!-- FAIXA TOPO INSTITUCIONAL -->
+<div class="faixa-topo">
+  <div class="wrap faixa-topo-in">
+    <span class="faixa-topo-txt">Observatório Paranaense do Saneamento · PRSB & Aditivos 2025 · 399 Municípios</span>
+    <div class="credito-bloco">
+      <span class="credito-label">Elaborado por:</span>
+      <a href="https://www.institutorenatomuzzolon.org.br" target="_blank" rel="noopener noreferrer" title="Instituto Renato Muzzolon">
+        <img class="logo-irm" src="assets/logo/irm_logo.png" alt="Instituto Renato Muzzolon" height="20">
+      </a>
+      <span style="color:var(--line)">|</span>
+      <a href="https://ambientalpro.com.br" target="_blank" rel="noopener noreferrer" title="Ambiental Pro">
+        <img class="logo-ap-mini logo-ap-clara" src="assets/ambientalpro_horizontal_preta.png" alt="Ambiental Pro" height="14">
+        <img class="logo-ap-mini logo-ap-escura" src="assets/ambientalpro_horizontal_branca.png" alt="Ambiental Pro" height="14">
+      </a>
+    </div>
+  </div>
+</div>
+
+<!-- CABEÇALHO FIXO COM MARCA, SELETOR E ABAS -->
+<header class="cab">
+  <div class="wrap cab-in">
+    <a class="marca" href="#visao" aria-label="OPS, Observatório Paranaense do Saneamento: início">
+      <img src="assets/logo/ops-icon.svg" alt="OPS — Observatório Paranaense do Saneamento" width="38" height="38">
+      <span class="marca-produto"><b>OPS Paraná</b>Painel Municipal de Saneamento</span>
+    </a>
+    <div class="cab-acoes">
+      <label class="seletor"><span>Município</span>
+        <select id="selMunicipio" aria-label="Selecione um município do Paraná"></select>
+      </label>
+      <button class="btn btn-claro" id="btnSim" aria-pressed="false" title="Alternar cenário de simulação">
+        <span id="btnSimT">Ver simulação</span>
+      </button>
+      <button class="btn btn-ico" id="btnTema" aria-label="Alternar entre tema claro e escuro" title="Tema claro ou escuro">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path d="M21 12.8A9 9 0 1111.2 3a7 7 0 009.8 9.8z"/></svg>
+      </button>
+      <a class="btn btn-p" href="#participacao">Relatar problema</a>
+    </div>
+  </div>
+  <nav class="abas" aria-label="Seções do painel">
+    <div class="wrap abas-in" role="tablist" id="abas">
+      <a role="tab" href="#visao" data-aba="visao" aria-selected="true">Visão geral</a>
+      <a role="tab" href="#territorio" data-aba="territorio">Mapa e unidades</a>
+      <a role="tab" href="#metas" data-aba="metas">Metas e investimento</a>
+      <a role="tab" href="#participacao" data-aba="participacao">Participação cidadã</a>
+      <a role="tab" href="#repositorio" data-aba="repositorio">Repositório de estudos</a>
+      <a role="tab" href="#fontes" data-aba="fontes">Fontes e método</a>
+    </div>
+  </nav>
+</header>
+
+<!-- BANNER DE SIMULAÇÃO -->
+<div class="aviso-sim" id="avisoSim" hidden role="status">
+  <div class="wrap">
+    <b>Modo de demonstração ativado.</b> Licenças, intervenções e relatos exibidos simulam a futura integração contínua do observatório. <button class="link" id="btnSairSim">Voltar aos dados oficiais do PRSB</button>
+  </div>
+</div>
+
+<main id="conteudo" class="wrap">
+
+  <!-- ================= SEÇÃO 1: VISÃO GERAL ================= -->
+  <section class="aba" id="visao" data-aba-painel="visao" aria-labelledby="t-visao">
+    <div class="pagina-cab heroi">
+      <div class="sobre" id="heroiSobre">Carregando dados regionais...</div>
+      <h1 id="t-visao"><span id="heroiNome">Curitiba</span><span class="uf" id="heroiUF">PR</span></h1>
+      <p class="heroi-sub" id="heroiSub"></p>
+      <dl class="heroi-fatos" id="heroiFatos"></dl>
+    </div>
+
+    <div class="nota-dados" id="avisoDados">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="9.5"/><path d="M12 11v6M12 7.5v.5"/></svg>
+      <div id="txtAvisoDados">Carregando contextualização do PRSB...</div>
+    </div>
+
+    <div class="sec-cab">
+      <h2>Indicadores Oficiais do Saneamento</h2>
+      <p class="desc">Índices de cobertura, tratamento e perdas apurados no Plano Regional de Saneamento Básico (PRSB) do Paraná e conferidos pelas metas do Marco Legal (Lei 14.026/2020).</p>
+    </div>
+    <div class="kpis" id="kpis"></div>
+
+    <div class="grade-2" style="margin-top:16px">
+      <div class="card">
+        <div class="card-cab"><h3>Os Quatro Eixos do Saneamento Básico</h3><p>Estrutura integrada prevista na Lei Federal nº 11.445/2007 e no PRSB Paraná.</p></div>
+        <div class="pad" id="eixosCards"></div>
+      </div>
+      <div class="card">
+        <div class="card-cab"><h3>Status e Origem dos Dados</h3><p>Rastreabilidade documental e atualização constante.</p></div>
+        <div class="pad" id="frescor"></div>
+      </div>
+    </div>
+
+    <!-- CADEIA DE ESGOTAMENTO -->
+    <div class="card cadeia-card" id="cadeiaCard">
+      <div class="card-cab"><h3>Cadeia de Esgotamento Sanitário</h3><p>Fluxo do efluente desde a geração domiciliar urbana até a disposição no corpo hídrico receptor.</p></div>
+      <div class="pad">
+        <div class="cadeia" id="cadeiaElos"></div>
+        <p class="cadeia-msg" id="cadeiaMsg"></p>
+      </div>
+    </div>
+
+    <!-- ACESSO DIRETO A ÓRGÃOS REGULADORES E PRESTADORES -->
+    <div class="sec-cab">
+      <h2>Acesso Direto às Instituições do Saneamento no Paraná</h2>
+      <p class="desc">Canais oficiais da concessionária estadual, agência reguladora e órgãos ambientais competentes.</p>
+    </div>
+    <div class="canais canais-3" id="canaisOrgaos">
+      <a class="canal" href="https://www.sanepar.com.br" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--eixo-agua)" stroke-width="2"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        <span><span class="cl">Sanepar</span><span class="cv">Concessionária Estadual (Água e Esgoto)</span></span>
+      </a>
+      <a class="canal" href="https://www.agepar.pr.gov.br" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--brand)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span><span class="cl">AGEPAR</span><span class="cv">Agência Reguladora de Serviços Públicos Delegados do PR</span></span>
+      </a>
+      <a class="canal" href="https://www.iat.pr.gov.br" target="_blank" rel="noopener noreferrer">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--parana-green)" stroke-width="2"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" y1="22" x2="4" y2="15"/></svg>
+        <span><span class="cl">IAT (Instituto Água e Terra)</span><span class="cv">Outorgas, Licenciamento Ambiental e DMAPU</span></span>
+      </a>
+    </div>
+  </section>
+
+  <!-- ================= SEÇÃO 2: MAPA E UNIDADES ================= -->
+  <section class="aba" id="territorio" data-aba-painel="territorio" aria-labelledby="t-terr" hidden>
+    <div class="sec-cab">
+      <h2 id="t-terr">Mapa e unidades</h2>
+      <p class="desc">Pranchas de concepção do plano, georreferenciadas pela grade de coordenadas e conferidas com imagem de satélite. Clique no mapa para marcar o local de um relato.</p>
+    </div>
+    <div class="mapa-grid">
+      <div class="card mapa-card">
+        <div class="mapa-ctl">
+          <div class="chips" id="camadas" aria-label="Camadas do mapa"></div>
+          <div class="ctl-dir">
+            <button class="btn btn-mapa" id="btnEnquadrar" title="Voltar ao enquadramento da prancha">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg>Enquadrar
+            </button>
+            <label class="ctl-prancha">Prancha <select id="selPrancha"></select></label>
+          </div>
+        </div>
+        <div id="mapa" class="mapa" role="application" aria-label="Mapa das unidades do sistema"></div>
+        <div class="mapa-rod" id="mapaRod"></div>
+      </div>
+      <aside class="card ficha" id="ficha" aria-live="polite">
+        <div class="ficha-vazia">Carregando legenda da prancha...</div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- ================= SEÇÃO 3: METAS E INVESTIMENTO ================= -->
+  <section class="aba" id="metas" data-aba-painel="metas" aria-labelledby="t-metas" hidden>
+    <div class="sec-cab">
+      <h2 id="t-metas">Trajetória e Metas de Universalização (2022-2033)</h2>
+      <p class="desc">Projeções anuais para o alcance das metas de 90% para esgotamento sanitário e 99% para abastecimento de água potável no município selecionado.</p>
+    </div>
+    <div class="grade-2">
+      <div class="card">
+        <div class="card-cab"><h3>Esgotamento Sanitário: Trajetória da Cobertura Total (%)</h3><p id="txtMetaEsg"></p></div>
+        <div class="legenda"><span><i class="tracejada"></i>Meta do Plano (PRSB)</span><span><i style="background:var(--eixo-esgoto)"></i>Realizado Sanepar</span></div>
+        <div class="pad graf-wrap">
+          <svg class="plot" id="grafEsgoto" viewBox="0 0 560 250" role="img" aria-label="Meta de esgoto ano a ano"></svg>
+          <div class="tt" id="ttEsg"></div>
+        </div>
+        <div class="fonte-graf">Fonte: PRSB Paraná e Resoluções das 11ª Assembleias Gerais de 2025.</div>
+      </div>
+      <div class="card">
+        <div class="card-cab"><h3>Água Potável: Controle e Redução de Perdas (%)</h3><p id="txtMetaAgu"></p></div>
+        <div class="legenda"><span><i class="tracejada"></i>Meta de Redução</span><span><i style="background:var(--eixo-agua)"></i>Medido SNIS/Sanepar</span></div>
+        <div class="pad graf-wrap">
+          <svg class="plot" id="grafAgua" viewBox="0 0 560 250" role="img" aria-label="Redução de perdas ano a ano"></svg>
+          <div class="tt" id="ttAgu"></div>
+        </div>
+        <div class="fonte-graf">Fonte: Sistema Nacional de Informações sobre Saneamento (SNIS).</div>
+      </div>
+    </div>
+
+    <div class="sec-cab">
+      <h2>Investimento Previsto (CAPEX) — Panorama Estadual Paraná</h2>
+      <p class="desc">Investimento consolidado no PRSB totalizando R$ 15,50 bilhões para abastecimento de água, esgotamento sanitário e segurança hídrica nas três Microrregiões (MRAEs).</p>
+    </div>
+    <div class="card pad"><div class="divisao" id="divisaoCapex"></div></div>
+    <div class="card pad graf-wrap" style="margin-top:16px">
+      <svg class="plot" id="grafCapex" viewBox="0 0 700 380" role="img" aria-label="Investimento previsto por rubrica e MRAE"></svg>
+      <div class="tt" id="ttCap"></div>
+    </div>
+    <p class="nota-rodape">Valores apurados nos cadernos regionais do PRSB (preços base 2022/2023) e atualizados pelas resoluções aditivas das MRAEs 1, 2 e 3 em 2025.</p>
+  </section>
+
+  <!-- ================= SEÇÃO 4: PARTICIPAÇÃO CIDADÃ ================= -->
+  <section class="aba" id="participacao" data-aba-painel="participacao" aria-labelledby="t-part" hidden>
+    <div class="sec-cab">
+      <h2 id="t-part">Canal de Participação Cidadã e Controle Social</h2>
+      <p class="desc">Espaço para moradores do Paraná relatarem situações de falhas de abastecimento, vazamentos na rede, falta de esgotamento ou obras irregulares.</p>
+    </div>
+    <div class="grade-2">
+      <div class="card pad">
+        <h3 class="h3-form">Registrar Relato sobre o Saneamento</h3>
+        <fieldset class="campo">
+          <legend>Tipo de problema constatado</legend>
+          <div class="tipos" id="tiposRel">
+            <button class="tipo" type="button" aria-pressed="true">Falta d'água recorrente</button>
+            <button class="tipo" type="button" aria-pressed="false">Água com cor ou cheiro</button>
+            <button class="tipo" type="button" aria-pressed="false">Vazamento de água na via</button>
+            <button class="tipo" type="button" aria-pressed="false">Esgoto a céu aberto / extravasamento</button>
+            <button class="tipo" type="button" aria-pressed="false">Obra atrasada ou paralisada</button>
+            <button class="tipo" type="button" aria-pressed="false">Bueiro entupido / alagamento</button>
+          </div>
+        </fieldset>
+        <label class="campo"><span>Descrição detalhada da situação</span>
+          <textarea id="relTexto" maxlength="600" placeholder="Ex.: No bairro X, estamos sem abastecimento de água regular há 4 dias consecutivos..."></textarea>
+        </label>
+        <label class="campo"><span>Contato para retorno <em>(opcional)</em></span>
+          <input type="text" id="relContato" maxlength="120" placeholder="WhatsApp, telefone ou e-mail">
+        </label>
+        <p class="erro" id="erroRel" role="alert" hidden>Por favor, descreva o problema antes de enviar.</p>
+        <p class="pill ok" id="avisoSucessoRel" role="status" style="display:block;margin:-4px 0 10px;padding:8px 12px;font-size:13px;border-radius:4px" hidden></p>
+        <button class="btn btn-p btn-cheio" id="btnEnviar">Registrar relato no observatório</button>
+        <p class="letra-miuda"><b>Atenção:</b> Esta plataforma é uma ferramenta de controle social e pesquisa independente desenvolvida pelo <b>Instituto Renato Muzzolon</b> e pela <b>Ambiental PRO</b>. Os dados registrados aqui servem para fins estatísticos e de monitoramento da sociedade civil.</p>
+      </div>
+
+      <div class="card">
+        <div class="card-cab"><h3>Relatos Registrados no Município</h3><p>Manifestações da comunidade local sob monitoramento.</p></div>
+        <div class="pad" id="listaRel">
+          <div class="relato">
+            <div class="ic"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/></svg></div>
+            <div class="tx">
+              <div class="tp">Vazamento na rede de distribuição</div>
+              <p style="margin:4px 0 0;font-size:13px">Rua com fluxo contínuo de água limpa por rompimento de adutora, comunicada ao prestador.</p>
+              <div class="mt">Registrado via painel · Em monitoramento</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec-cab">
+      <h2>Como Registrar Reclamação Formal na AGEPAR</h2>
+      <p class="desc">A Agência Reguladora do Paraná (AGEPAR) atua como órgão de mediação de 2ª instância quando a concessionária não soluciona a demanda no prazo regulamentar.</p>
+    </div>
+    <div class="card pad">
+      <div class="passo"><div class="n">1</div><div><h4>Protocolo prévio na Concessionária (Sanepar)</h4><p>Primeiro ligue para o telefone <b>0800 200 0115</b> ou use o aplicativo Sanepar. Anote obrigatoriamente o número de protocolo do atendimento.</p></div></div>
+      <div class="passo"><div class="n">2</div><div>
+        <h4>Abertura de Manifestação na Ouvidoria da AGEPAR</h4>
+        <p>Caso o prazo não tenha sido cumprido ou o serviço não tenha sido realizado com qualidade, acione a ouvidoria da AGEPAR munido do protocolo:</p>
+        <div class="canais" style="margin-top:10px">
+          <a class="canal" href="https://www.agepar.pr.gov.br/Pagina/Ouvidoria" target="_blank" rel="noopener noreferrer">
+            <span class="cl">Portal da Ouvidoria AGEPAR</span><span class="cv">agepar.pr.gov.br/Pagina/Ouvidoria</span>
+          </a>
+          <a class="canal" href="tel:08006442013">
+            <span class="cl">Telefone Gratuito Ouvidoria</span><span class="cv">0800 644 2013</span>
+          </a>
+        </div>
+        <div style="margin-top:14px">
+          <button class="btn btn-s" id="btnResumo">Gerar texto resumido da manifestação</button>
+          <button class="btn btn-s" id="btnCopiar" hidden>Copiar texto gerado</button>
+          <pre class="resumo" id="boxResumo" hidden></pre>
+        </div>
+      </div></div>
+    </div>
+  </section>
+
+  <!-- ================= SEÇÃO 5: REPOSITÓRIO ================= -->
+  <section class="aba" id="repositorio" data-aba-painel="repositorio" aria-labelledby="t-repo" hidden>
+    <div class="sec-cab">
+      <h2 id="t-repo">Repositório de Estudos e Planos Oficiais</h2>
+      <p class="desc">Documentos oficiais integrais dos Planos Regionais de Saneamento Básico (PRSB) das 3 MRAEs, aditivos contratuais de 2025, PERS-PR e diretrizes do IAT.</p>
+    </div>
+    <div class="repo-lista" id="repoLista"></div>
+    <p class="nota-rodape">Todos os documentos listados são de acesso público e foram elaborados sob coordenação da Secretaria de Estado das Cidades (SECID-PR) e do Governo do Estado do Paraná.</p>
+  </section>
+
+  <!-- ================= SEÇÃO 6: FONTES E MÉTODO ================= -->
+  <section class="aba" id="fontes" data-aba-painel="fontes" aria-labelledby="t-fontes" hidden>
+    <div class="sec-cab">
+      <h2 id="t-fontes">Fontes Oficiais e Metodologia de Coleta</h2>
+      <p class="desc">Transparência metodológica: critérios de extração, bases públicas utilizadas e dados abertos para download.</p>
+    </div>
+    <div class="grade-3">
+      <div class="card pad">
+        <h3>Documentos Oficiais Analisados</h3>
+        <ul class="lista">
+          <li><b>PRSB MRAE 1:</b> 533 páginas (RMC e Litoral)</li>
+          <li><b>PRSB MRAE 2:</b> 1.072 páginas (Centro-Leste)</li>
+          <li><b>PRSB MRAE 3:</b> 1.290 páginas (Oeste/Noroeste)</li>
+          <li><b>Aditivos 2025:</b> Resoluções das 11ª Assembleias Gerais de cada MRAE (298 páginas no total)</li>
+          <li><b>Censo IBGE 2022:</b> População, Domicílios e Setores Censitários</li>
+          <li><b>SNIS:</b> Diagnóstico do Manejo de Água e Esgoto</li>
+        </ul>
+      </div>
+      <div class="card pad">
+        <h3>Marco Regulatório Paranaense</h3>
+        <ul class="lista">
+          <li><b>Lei Federal nº 11.445/2007:</b> Diretrizes nacionais para o saneamento básico.</li>
+          <li><b>Lei Federal nº 14.026/2020:</b> Atualização do Marco Legal e metas de universalização 2033 (99% água, 90% esgoto).</li>
+          <li><b>Lei Complementar Estadual nº 237/2021:</b> Criação das três Microrregiões de Água e Esgoto do Paraná (MRAEs 1, 2 e 3).</li>
+        </ul>
+      </div>
+      <div class="card pad">
+        <h3>Dados Abertos (Download)</h3>
+        <p>Acesse as bases brutas consolidadas dos 399 municípios para análises acadêmicas, jornalismo de dados e pesquisa:</p>
+        <div style="display:flex;flex-direction:column;gap:8px;margin-top:12px">
+          <button class="btn btn-s" onclick="window.OPS_APP.exportarCSV()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar Tabela Completa (CSV)
+          </button>
+          <button class="btn btn-s" onclick="window.OPS_APP.exportarJSON()">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+            Baixar Base Completa (JSON)
+          </button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- RODAPÉ INSTITUCIONAL COM LOGOS E CRÉDITOS "ELABORADO POR" -->
+<footer class="rodape">
+  <div class="wrap rod-in">
+    <div class="rod-marca">
+      <img src="assets/logo/ops-icon.svg" alt="OPS Paraná" width="34" height="34">
+    </div>
+    <p>
+      <b>Observatório Paranaense do Saneamento (OPS Paraná)</b><br>
+      Plataforma independente de transparência e monitoramento do saneamento básico nos 399 municípios do Paraná.<br>
+      Dados consolidados a partir do Plano Regional de Saneamento Básico (PRSB), resoluções das MRAEs de 2025, AGEPAR, Sanepar e Censo IBGE.
+    </p>
+
+    <!-- CRÉDITO INSTITUCIONAL: ELABORADO POR IRM E AMBIENTAL PRO -->
+    <div class="rod-elaborado">
+      <span class="rod-elaborado-label">Elaborado por:</span>
+      <div class="rod-parceiro-logos">
+        <a href="https://www.institutorenatomuzzolon.org.br" target="_blank" rel="noopener noreferrer" title="Instituto Renato Muzzolon">
+          <img class="irm-rod" src="assets/logo/irm_logo.png" alt="Instituto Renato Muzzolon">
+        </a>
+        <a href="https://ambientalpro.com.br" target="_blank" rel="noopener noreferrer" title="Ambiental Pro">
+          <img class="logo-ap logo-ap-clara ap-rod" src="assets/ambientalpro_horizontal_preta.png" alt="Ambiental Pro">
+          <img class="logo-ap logo-ap-escura ap-rod" src="assets/ambientalpro_horizontal_branca.png" alt="Ambiental Pro">
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<!-- SCRIPTS LOCAIS E DEPENDÊNCIAS -->
+<script src="data/data_bundle.js"></script>
+<script src="data/catalogo.js"></script>
+<script src="data/parana_boundary.js"></script>
+<script src="data/geopr_eta.js"></script>
+<script src="data/geopr_efluentes.js"></script>
+<script src="data/geopr_mananciais.js"></script>
+<script src="data/repositorio.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
+<script src="js/config.js"></script>
+<script src="js/servidor.js"></script>
+<script src="js/graficos.js"></script>
+<script src="js/mapa.js"></script>
+<script src="js/app.js"></script>
+
+</body>
+</html>
