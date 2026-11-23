@@ -39,6 +39,7 @@ window.OPS_APP = {
     this.renderSeletor();
     this.setupAbas();
     this.setupEventos();
+    this.setupBuscaMunicipio();
 
     // Renderizar município inicial
     this.carregarMunicipio(this.municipioAtual);
@@ -194,12 +195,206 @@ window.OPS_APP = {
   },
 
   selecionarMunicipioPorNome: function(nome) {
-    const m = this.municipios.find(item => item.nome.toLowerCase() === nome.toLowerCase());
+    const m = this.municipios.find(item => item.nome.toLowerCase() === String(nome || "").toLowerCase());
     if (m) {
       this.carregarMunicipio(m);
+      this.renderSeletor();
       const sel = $("#selMunicipio");
       if (sel) sel.value = m.nome;
+      const campoBusca = $("#campoBuscaMunicipio");
+      if (campoBusca) campoBusca.value = m.nome;
+      const btnLimpar = $("#btnLimparBusca");
+      if (btnLimpar) btnLimpar.hidden = false;
       this.abrirAba("visao");
+    }
+  },
+
+  setupBuscaMunicipio: function() {
+    const input = $("#campoBuscaMunicipio");
+    const listaResultados = $("#buscaResultados");
+    const btnLimpar = $("#btnLimparBusca");
+    if (!input || !listaResultados) return;
+
+    if (this.municipioAtual) {
+      input.value = this.municipioAtual.nome;
+      if (btnLimpar) btnLimpar.hidden = false;
+    }
+
+    let itemFocadoIndex = -1;
+
+    const normalizar = str => (str || "")
+      .toLowerCase()
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "");
+
+    const filtrarMunicipios = termo => {
+      const q = normalizar(termo.trim());
+      if (!q) return [];
+      return this.municipios.filter(m => {
+        const nomeNorm = normalizar(m.nome);
+        const ibge = String(m.codigo_ibge || "");
+        return nomeNorm.includes(q) || ibge.includes(q);
+      });
+    };
+
+    const fecharBusca = (novoValor) => {
+      listaResultados.hidden = true;
+      listaResultados.innerHTML = "";
+      itemFocadoIndex = -1;
+      if (typeof novoValor === "string") {
+        input.value = novoValor;
+      }
+      if (btnLimpar) btnLimpar.hidden = !input.value;
+    };
+
+    const renderResultados = resultados => {
+      itemFocadoIndex = -1;
+      if (!resultados.length) {
+        listaResultados.innerHTML = `<div class="busca-sem-resultado">Nenhum município encontrado com esse nome</div>`;
+        listaResultados.hidden = false;
+        return;
+      }
+
+      const html = resultados.slice(0, 10).map((m, idx) => {
+        const mraeCurto = (m.mrae || "")
+          .replace(" - Centro-Litoral", "")
+          .replace(" - Centro-Leste", "")
+          .replace(" - Oeste", "");
+        return `
+          <div class="busca-item" role="option" data-nome="${esc(m.nome)}" data-index="${idx}">
+            <div>
+              <span class="busca-item-nome">${esc(m.nome)}</span>
+              <span style="font-size:11px;color:var(--ink-3);margin-left:4px">IBGE ${m.codigo_ibge || ""}</span>
+            </div>
+            <span class="busca-item-mrae">${esc(mraeCurto || m.mrae || "")}</span>
+          </div>
+        `;
+      }).join("");
+
+      listaResultados.innerHTML = html;
+      listaResultados.hidden = false;
+
+      $$(".busca-item", listaResultados).forEach(item => {
+        item.addEventListener("click", () => {
+          const nome = item.getAttribute("data-nome");
+          this.selecionarMunicipioPorNome(nome);
+          fecharBusca(nome);
+        });
+      });
+    };
+
+    input.addEventListener("input", e => {
+      const termo = e.target.value;
+      if (btnLimpar) btnLimpar.hidden = !termo;
+      if (!termo.trim()) {
+        listaResultados.hidden = true;
+        this.filtrarSeletor("");
+        return;
+      }
+      const resultados = filtrarMunicipios(termo);
+      renderResultados(resultados);
+      this.filtrarSeletor(termo);
+    });
+
+    input.addEventListener("focus", () => {
+      input.select();
+      const termo = input.value.trim();
+      if (termo) {
+        const resultados = filtrarMunicipios(termo);
+        renderResultados(resultados);
+      }
+    });
+
+    input.addEventListener("keydown", e => {
+      const items = $$(".busca-item", listaResultados);
+      if (!items.length) {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          const termo = input.value.trim();
+          if (termo) {
+            const matches = filtrarMunicipios(termo);
+            if (matches.length > 0) {
+              this.selecionarMunicipioPorNome(matches[0].nome);
+              fecharBusca(matches[0].nome);
+            }
+          }
+        }
+        return;
+      }
+
+      if (e.key === "ArrowDown") {
+        e.preventDefault();
+        itemFocadoIndex = (itemFocadoIndex + 1) % items.length;
+        atualizarFoco(items);
+      } else if (e.key === "ArrowUp") {
+        e.preventDefault();
+        itemFocadoIndex = (itemFocadoIndex - 1 + items.length) % items.length;
+        atualizarFoco(items);
+      } else if (e.key === "Enter") {
+        e.preventDefault();
+        if (itemFocadoIndex >= 0 && items[itemFocadoIndex]) {
+          items[itemFocadoIndex].click();
+        } else if (items[0]) {
+          items[0].click();
+        }
+      } else if (e.key === "Escape") {
+        fecharBusca();
+      }
+    });
+
+    const atualizarFoco = items => {
+      items.forEach((it, idx) => {
+        if (idx === itemFocadoIndex) {
+          it.classList.add("selecionado");
+          it.scrollIntoView({ block: "nearest" });
+        } else {
+          it.classList.remove("selecionado");
+        }
+      });
+    };
+
+    if (btnLimpar) {
+      btnLimpar.addEventListener("click", () => {
+        input.value = "";
+        fecharBusca("");
+        this.renderSeletor();
+        input.focus();
+      });
+    }
+
+    document.addEventListener("click", e => {
+      if (!e.target.closest("#buscaMunicipioBox")) {
+        listaResultados.hidden = true;
+      }
+    });
+  },
+
+  filtrarSeletor: function(termo) {
+    const sel = $("#selMunicipio");
+    if (!sel) return;
+
+    if (!termo || !termo.trim()) {
+      this.renderSeletor();
+      return;
+    }
+
+    const normalizar = str => (str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+    const q = normalizar(termo.trim());
+
+    const filtrados = this.municipios.filter(m => {
+      return normalizar(m.nome).includes(q) || String(m.codigo_ibge || "").includes(q);
+    });
+
+    if (!filtrados.length) return;
+
+    let html = `<optgroup label="Filtrados pela pesquisa (${filtrados.length} encontrados)">`;
+    filtrados.sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR")).forEach(m => {
+      html += `<option value="${esc(m.nome)}">${esc(m.nome)} · IBGE ${m.codigo_ibge || ""}</option>`;
+    });
+    html += `</optgroup>`;
+    sel.innerHTML = html;
+    if (filtrados.some(m => m.nome === this.municipioAtual.nome)) {
+      sel.value = this.municipioAtual.nome;
     }
   },
 

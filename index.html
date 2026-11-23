@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="css/ops.css?v=7">
+<link rel="stylesheet" href="css/ops.css?v=11">
 <style>
 /* Estilos específicos para créditos institucionais no topo e rodapé */
 .credito-bloco{display:inline-flex; align-items:center; gap:14px; margin-left:auto}
@@ -60,6 +60,14 @@
       <span class="marca-produto"><b>OPS Paraná</b>Painel Municipal de Saneamento</span>
     </a>
     <div class="cab-acoes">
+      <div class="busca-municipio-box" id="buscaMunicipioBox">
+        <div class="busca-input-wrap">
+          <svg class="busca-ico" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+          <input type="text" id="campoBuscaMunicipio" placeholder="Buscar município..." autocomplete="off" aria-label="Buscar município por nome ou código IBGE" spellcheck="false">
+          <button type="button" class="busca-limpar" id="btnLimparBusca" title="Limpar busca" aria-label="Limpar busca" hidden>&times;</button>
+        </div>
+        <div class="busca-resultados" id="buscaResultados" role="listbox" hidden></div>
+      </div>
       <label class="seletor"><span>Município</span>
         <select id="selMunicipio" aria-label="Selecione um município do Paraná"></select>
       </label>
@@ -396,11 +404,11 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.js"></script>
 <script src="js/config.js"></script>
-<script src="js/servidor.js?v=10"></script>
-<script src="js/graficos.js?v=10"></script>
-<script src="js/mapa.js?v=10"></script>
-<script src="js/app.js?v=10"></script>
-<script src="js/forum.js?v=10"></script>
+<script src="js/servidor.js?v=11"></script>
+<script src="js/graficos.js?v=11"></script>
+<script src="js/mapa.js?v=11"></script>
+<script src="js/app.js?v=11"></script>
+<script src="js/forum.js?v=11"></script>
 
 </body>
 </html>

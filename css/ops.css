@@ -82,6 +82,80 @@ button{cursor:pointer}
 .marca-produto{padding-left:12px; border-left:1px solid var(--line); font-size:var(--fs-sm); color:var(--ink-3); line-height:1.25}
 .marca-produto b{display:block; color:var(--ink); font-weight:600}
 .cab-acoes{display:flex; gap:8px; align-items:center; margin-left:auto; flex-wrap:wrap}
+
+/* ---------- barra de pesquisa de municípios ---------- */
+.busca-municipio-box{position:relative; display:flex; align-items:center}
+.busca-input-wrap{position:relative; display:flex; align-items:center}
+.busca-ico{position:absolute; left:10px; color:var(--ink-3); pointer-events:none}
+.busca-input-wrap input{
+  min-height:38px;
+  width:190px;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  background:var(--surface);
+  padding:0 28px 0 32px;
+  font-size:var(--fs-sm);
+  color:var(--ink);
+  font-family:inherit;
+  font-weight:500;
+  transition:border-color 0.15s ease, box-shadow 0.15s ease, width 0.2s ease;
+}
+.busca-input-wrap input:focus{
+  outline:none;
+  border-color:var(--brand);
+  box-shadow:0 0 0 2px var(--brand-soft);
+  width:230px;
+}
+.busca-limpar{
+  position:absolute;
+  right:6px;
+  background:none;
+  border:none;
+  font-size:18px;
+  line-height:1;
+  color:var(--ink-3);
+  cursor:pointer;
+  padding:2px 6px;
+  border-radius:50%;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+}
+.busca-limpar:hover{color:var(--ink); background:var(--surface-2)}
+.busca-resultados{
+  position:absolute;
+  top:calc(100% + 5px);
+  left:0;
+  width:320px;
+  max-height:280px;
+  overflow-y:auto;
+  background:var(--surface);
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  box-shadow:var(--s2);
+  z-index:750;
+}
+.busca-item{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:8px;
+  padding:9px 12px;
+  cursor:pointer;
+  border-bottom:1px solid var(--line-2);
+  font-size:var(--fs-sm);
+  color:var(--ink);
+  transition:background 0.12s ease;
+}
+.busca-item:last-child{border-bottom:none}
+.busca-item:hover, .busca-item.selecionado{
+  background:var(--brand-soft);
+  color:var(--brand);
+}
+.busca-item-nome{font-weight:600}
+.busca-item-mrae{font-size:11px; color:var(--ink-3); background:var(--surface-2); padding:2px 6px; border-radius:4px; white-space:nowrap}
+.busca-sem-resultado{padding:12px; font-size:var(--fs-sm); color:var(--ink-3); text-align:center}
+
 .seletor{display:flex; align-items:center; gap:8px; font-size:var(--fs-sm); color:var(--ink-3)}
 .seletor select{min-height:38px; min-width:260px; max-width:320px; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); padding:0 10px; font-size:var(--fs-md); color:var(--ink); font-weight:500}
 .seletor-mrae select{min-width:170px}
@@ -385,5 +459,10 @@ fieldset.campo legend{display:block; font-size:var(--fs-sm); font-weight:500; co
   .kpi{border-right:0; border-bottom:1px solid var(--line-2)}
   .regra{border-right:0; border-bottom:1px solid var(--line-2)}
   .seletor select{min-width:100%; max-width:100%}
+  .busca-municipio-box{width:100%}
+  .busca-input-wrap{width:100%}
+  .busca-input-wrap input{width:100%}
+  .busca-input-wrap input:focus{width:100%}
+  .busca-resultados{width:100%}
   .cab-acoes{width:100%; margin-left:0}
 }
