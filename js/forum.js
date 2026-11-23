@@ -1,9 +1,9 @@
 /* ==========================================================================
    OPS Paraná — Área do Fórum Permanente de Saneamento
-   Acesso das instituições para propor correções técnicas e certificá-las em campo.
-   Regra de negócio: Uma correção só vira CERTIFICADA quando OUTRA instituição
-   do fórum confirma. Ninguém certifica o próprio dado.
-   O público vê apenas os dados certificados.
+   Acesso restrito para técnicos e auditores credenciados das instituições
+   membros do Fórum Permanente de Saneamento do Paraná (AGEPAR, SEDEST, IAT, UFPR, CREA, etc).
+   SEGURANÇA: Requer autenticação formal por e-mail e senha.
+   Nenhum usuário é reconhecido ou conectado automaticamente.
    ========================================================================== */
 "use strict";
 
@@ -23,112 +23,42 @@ window.OPS_FORUM = (() => {
   ];
 
   const INSTITUICOES = [
-    { id: 1, sigla: "AGEPAR", nome: "Agência Reguladora de Serviços Públicos Delegados do PR", papel: "admin", email: "ouvidoria@agepar.pr.gov.br" },
-    { id: 2, sigla: "SEDEST / SECID", nome: "Secretaria de Desenvolvimento Sustentável e Cidades (PR)", papel: "membro", email: "saneamento@sedest.pr.gov.br" },
-    { id: 3, sigla: "IAT", nome: "Instituto Água e Terra do Paraná", papel: "membro", email: "outorgas@iat.pr.gov.br" },
-    { id: 4, sigla: "UFPR", nome: "Universidade Federal do Paraná (Dept. Hidráulica e Saneamento)", papel: "membro", email: "dhs@ufpr.br" },
-    { id: 5, sigla: "CREA-PR", nome: "Conselho Regional de Engenharia e Agronomia do Paraná", papel: "membro", email: "camara.civil@crea-pr.org.br" },
-    { id: 6, sigla: "AMP", nome: "Associação dos Municípios do Paraná", papel: "membro", email: "forum@ampr.org.br" },
-    { id: 7, sigla: "Sanepar", nome: "Companhia de Saneamento do Paraná (Concessionária)", papel: "membro", email: "planejamento@sanepar.com.br" }
+    { id: 1, sigla: "AGEPAR", nome: "Agência Reguladora de Serviços Públicos Delegados do PR", papel: "admin", dominio: "agepar.pr.gov.br" },
+    { id: 2, sigla: "SEDEST / SECID", nome: "Secretaria de Desenvolvimento Sustentável e Cidades (PR)", papel: "membro", dominio: "sedest.pr.gov.br" },
+    { id: 3, sigla: "IAT", nome: "Instituto Água e Terra do Paraná", papel: "membro", dominio: "iat.pr.gov.br" },
+    { id: 4, sigla: "UFPR", nome: "Universidade Federal do Paraná (Dept. Hidráulica e Saneamento)", papel: "membro", dominio: "ufpr.br" },
+    { id: 5, sigla: "CREA-PR", nome: "Conselho Regional de Engenharia e Agronomia do Paraná", papel: "membro", dominio: "crea-pr.org.br" },
+    { id: 6, sigla: "AMP", nome: "Associação dos Municípios do Paraná", papel: "membro", dominio: "ampr.org.br" },
+    { id: 7, sigla: "Sanepar", nome: "Companhia de Saneamento do Paraná (Concessionária)", papel: "membro", dominio: "sanepar.com.br" }
   ];
 
-  // Armazenamento local de correções (com sync se houver Supabase)
   const CHAVE_STORAGE = "ops_pr_forum_correcoes";
-  const CHAVE_SESSAO = "ops_pr_forum_sessao";
 
-  function carregarCorrecoesIniciais() {
+  // Carregar histórico de correções (inicializa vazio ou com registros salvos)
+  function carregarCorrecoes() {
     try {
       const salvas = localStorage.getItem(CHAVE_STORAGE);
       if (salvas) return JSON.parse(salvas);
     } catch (e) {}
-
-    return [
-      {
-        id: 101,
-        municipio_nome: "Curitiba",
-        municipio_id: "4106902",
-        indicador: "perdas",
-        rotulo: "Índice de perdas na distribuição",
-        valor_oficial: "33.8% (PRSB / SNIS)",
-        fonte_oficial: "PRSB Paraná 2023 · Caderno MRAE 1",
-        valor_proposto: "31.2%",
-        evidencia: "Medição de campo com telemetria contínua e balanço macromedido em 12 setores de abastecimento da RMC realizada pela equipe técnica da UFPR.",
-        evidencia_url: "https://www.pr.gov.br/agepar",
-        criado_em: "2026-10-14T10:00:00Z",
-        status: "certificado",
-        instituicao_id: 4,
-        autor_nome: "Prof. Dr. Marcos Silveira",
-        instituicao: { sigla: "UFPR", nome: "Universidade Federal do Paraná" },
-        revisado_em: "2026-10-28T14:30:00Z",
-        revisor: { sigla: "AGEPAR", nome: "Agência Reguladora do Paraná" },
-        motivo_rejeicao: null
-      },
-      {
-        id: 102,
-        municipio_nome: "Paranaguá",
-        municipio_id: "4118204",
-        indicador: "esgotoTotal",
-        rotulo: "Cobertura de esgoto sanitário (total)",
-        valor_oficial: "62.0%",
-        fonte_oficial: "PRSB Paraná 2023 · Caderno Litoral",
-        valor_proposto: "71.4%",
-        evidencia: "Vistoria e auditoria física das novas redes coletoras e ligações prediais entregues no bairro Costeira e Ilha dos Valadares pela câmara técnica do CREA-PR.",
-        evidencia_url: "",
-        criado_em: "2026-11-10T16:20:00Z",
-        status: "em_validacao",
-        instituicao_id: 5,
-        autor_nome: "Eng. Rafael Camargo (CREA-PR)",
-        instituicao: { sigla: "CREA-PR", nome: "Conselho Regional de Engenharia" },
-        revisado_em: null,
-        revisor: null,
-        motivo_rejeicao: null
-      },
-      {
-        id: 103,
-        municipio_nome: "Ponta Grossa",
-        municipio_id: "4119905",
-        indicador: "reservacao",
-        rotulo: "Capacidade de reservação de água",
-        valor_oficial: "12.500 m³",
-        fonte_oficial: "Cadastro PRSB / Sanepar",
-        valor_proposto: "16.000 m³",
-        evidencia: "Entrada em operação do novo Centro de Reservação Pitangui (R-04) outorgado pela Portaria IAT nº 2025/110.",
-        evidencia_url: "",
-        criado_em: "2026-11-15T09:40:00Z",
-        status: "em_validacao",
-        instituicao_id: 3,
-        autor_nome: "Biól. Juliana Mendes (IAT)",
-        instituicao: { sigla: "IAT", nome: "Instituto Água e Terra" },
-        revisado_em: null,
-        revisor: null,
-        motivo_rejeicao: null
-      }
-    ];
+    return [];
   }
 
-  let correcoes = carregarCorrecoesIniciais();
+  let correcoes = carregarCorrecoes();
+
+  // Sessão estritamente nula no início — NENHUM login automático
   let sessaoAtual = null;
-  let ocupado = false;
+  let iniciado = false;
+
+  // Limpar qualquer resquício de sessão antiga de demonstração
+  try {
+    localStorage.removeItem("ops_pr_forum_sessao");
+  } catch (e) {}
 
   function salvar() {
     try {
       localStorage.setItem(CHAVE_STORAGE, JSON.stringify(correcoes));
     } catch (e) {}
   }
-
-  function recuperarSessaoSalva() {
-    try {
-      const s = localStorage.getItem(CHAVE_SESSAO);
-      if (s) return JSON.parse(s);
-    } catch (e) {}
-    // Padrão institucional inicial de demonstração: AGEPAR (Coordenação)
-    return {
-      usuario: "Dr. Carlos Eduardo (AGEPAR)",
-      instituicao: INSTITUICOES[0]
-    };
-  }
-
-  sessaoAtual = recuperarSessaoSalva();
 
   const el = () => document.getElementById("forumConteudo");
   const dataFmt = d => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
@@ -146,7 +76,121 @@ window.OPS_FORUM = (() => {
     return `<span class="pill pend">⏳ Em validação</span>`;
   };
 
-  /* ---------- Obter valor oficial do município ---------- */
+  /* ---------- TELA 1: LOGIN ESTRITO (Para qualquer usuário novo/não logado) ---------- */
+  function renderTelaLogin(msg, erro) {
+    const container = el();
+    if (!container) return;
+
+    container.innerHTML = `
+      <div class="card pad forum-card">
+        <div class="forum-cab-login">
+          <span class="pill ok" style="margin-bottom:8px">Área Restrita</span>
+          <h3>Acesso das Instituições do Fórum Permanente</h3>
+          <p class="letra-miuda" style="margin-top:4px">
+            Ambiente de gestão e validação técnica restrito aos membros credenciados do <b>Fórum Permanente de Saneamento do Paraná</b> (AGEPAR, SEDEST/SECID, IAT, UFPR, CREA-PR, AMP e Sanepar).
+          </p>
+        </div>
+
+        <form id="fLogin" class="forum-form" style="margin-top:18px">
+          <label class="campo">
+            <span>E-mail institucional credenciado</span>
+            <input type="email" id="fEmail" autocomplete="username" placeholder="seu.nome@instituicao.pr.gov.br" required>
+          </label>
+          <label class="campo">
+            <span>Senha de acesso</span>
+            <input type="password" id="fSenha" autocomplete="current-password" placeholder="••••••••" required>
+          </label>
+          
+          <button class="btn btn-p btn-cheio" type="submit" id="btnEntrarForum" style="margin-top:8px">
+            Entrar na Área do Fórum
+          </button>
+          
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-top:12px">
+            <button class="link" type="button" id="fEsqueci" style="font-size:var(--fs-xs)">Esqueci minha senha</button>
+          </div>
+
+          <div id="fMsgLogin" style="margin-top:12px">
+            ${msg ? aviso(msg, erro) : ""}
+          </div>
+        </form>
+
+        <div class="nota-dados" style="margin-top:22px;font-size:12px;background:var(--surface-2);color:var(--ink-2);border-color:var(--line)">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4M12 8h.01"/></svg>
+          <div>
+            <b>Acesso Restrito e Controle de Gestão:</b> O acesso a esta seção é concedido exclusivamente por convite institucional enviado aos membros do Fórum. Visitantes e cidadãos têm acesso público irrestrito a todos os dados oficiais e certificados na aba <b>Visão Geral</b> e podem registrar demandas comunitárias em <b>Participação Cidadã</b>.
+          </div>
+        </div>
+      </div>
+    `;
+
+    // Processamento do formulário de login
+    const form = $("#fLogin");
+    const btnEntrar = $("#btnEntrarForum");
+    const msgDiv = $("#fMsgLogin");
+
+    if (form) {
+      form.onsubmit = async e => {
+        e.preventDefault();
+        const email = $("#fEmail").value.trim().toLowerCase();
+        const senha = $("#fSenha").value;
+
+        if (!email || !senha) {
+          msgDiv.innerHTML = aviso("Preencha o e-mail e a senha.", true);
+          return;
+        }
+
+        btnEntrar.disabled = true;
+        btnEntrar.textContent = "Verificando credenciais...";
+        msgDiv.innerHTML = "";
+
+        try {
+          if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+            // Tentativa de login no Supabase oficial
+            const res = await window.OPS_SERVICO.entrar(email, senha);
+            const user = res.user || (res.session && res.session.user);
+            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+
+            sessaoAtual = {
+              usuario: user.email,
+              instituicao: instDetectada
+            };
+            renderPainelMembro(`Autenticado com sucesso como <b>${esc(sessaoAtual.usuario)}</b> (${esc(sessaoAtual.instituicao.sigla)}).`);
+          } else {
+            // Em caso de falha de conexão com servidor
+            throw new Error("Servidor de autenticação do fórum temporariamente indisponível.");
+          }
+        } catch (er) {
+          console.warn("Falha de autenticação:", er.message);
+          btnEntrar.disabled = false;
+          btnEntrar.textContent = "Entrar na Área do Fórum";
+          msgDiv.innerHTML = aviso("Acesso não autorizado. E-mail ou senha não conferem ou conta sem convite do Fórum Permanente. Fale com a coordenação técnica da AGEPAR.", true);
+        }
+      };
+    }
+
+    const btnEsqueci = $("#fEsqueci");
+    if (btnEsqueci) {
+      btnEsqueci.onclick = async () => {
+        const email = $("#fEmail").value.trim();
+        if (!email) {
+          msgDiv.innerHTML = aviso("Por favor, digite seu e-mail institucional no campo acima para solicitar redefinição de senha.", true);
+          return;
+        }
+        try {
+          if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+            await window.OPS_SERVICO.recuperarSenha(email);
+            msgDiv.innerHTML = aviso("Se o e-mail estiver credenciado pelo Fórum, você receberá um link seguro de redefinição.");
+          } else {
+            msgDiv.innerHTML = aviso("Serviço de e-mail não configurado.", true);
+          }
+        } catch (er) {
+          msgDiv.innerHTML = aviso("Não foi possível enviar solicitação: " + er.message, true);
+        }
+      };
+    }
+  }
+
+  /* ---------- TELA 2: PAINEL DO MEMBRO (Exibido SOMENTE após autenticação válida) ---------- */
   function oficialDe(nomeMunicipio, ind) {
     const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
     const m = todos.find(item => item.nome.toLowerCase() === String(nomeMunicipio || "").toLowerCase()) || window.OPS_APP.municipioAtual;
@@ -206,7 +250,6 @@ window.OPS_FORUM = (() => {
     };
   }
 
-  /* ---------- Linha de exibição de proposta ---------- */
   function linhaCorrecao(c, podeAcoes) {
     const ehAutor = sessaoAtual && sessaoAtual.instituicao && c.instituicao_id === sessaoAtual.instituicao.id;
 
@@ -241,7 +284,6 @@ window.OPS_FORUM = (() => {
     `;
   }
 
-  /* ---------- Formulário de Nova Proposta ---------- */
   function renderFormProposta() {
     const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
     const munAtual = window.OPS_APP && window.OPS_APP.municipioAtual ? window.OPS_APP.municipioAtual.nome : "Curitiba";
@@ -353,12 +395,11 @@ window.OPS_FORUM = (() => {
 
         correcoes.unshift(nova);
         salvar();
-        render("Proposta de correção enviada com sucesso! Ela já aparece na lista das outras instituições para confirmação.");
+        renderPainelMembro("Proposta de correção enviada com sucesso! Ela aguarda confirmação de outra instituição do Fórum.");
       };
     }
   }
 
-  /* ---------- Ações de Certificação e Rejeição ---------- */
   function ligarAcoesRevisao() {
     $$("[data-certificar]").forEach(btn => {
       btn.onclick = () => {
@@ -366,9 +407,8 @@ window.OPS_FORUM = (() => {
         const item = correcoes.find(c => c.id === id);
         if (!item) return;
 
-        // Regra de ouro: uma instituição não pode certificar a própria proposta
         if (item.instituicao_id === sessaoAtual.instituicao.id) {
-          alert("Regra de auditoria: Nenhuma instituição pode certificar o próprio dado. A confirmação deve ser feita por outra entidade do fórum.");
+          alert("Regra de auditoria: Nenhuma instituição pode certificar o próprio dado. A confirmação deve ser realizada por outra entidade do Fórum.");
           return;
         }
 
@@ -376,7 +416,7 @@ window.OPS_FORUM = (() => {
         item.revisado_em = new Date().toISOString();
         item.revisor = sessaoAtual.instituicao;
         salvar();
-        render(`Correção de <b>${esc(item.municipio_nome)}</b> confirmada e <b>CERTIFICADA</b> por ${esc(sessaoAtual.instituicao.sigla)}! O dado já é exibido como oficial certificado.`);
+        renderPainelMembro(`Correção de <b>${esc(item.municipio_nome)}</b> confirmada e <b>CERTIFICADA</b> por ${esc(sessaoAtual.instituicao.sigla)}!`);
       };
     });
 
@@ -387,86 +427,60 @@ window.OPS_FORUM = (() => {
         if (!item) return;
 
         if (item.instituicao_id === sessaoAtual.instituicao.id) {
-          alert("Você não pode rejeitar sua própria proposta aqui; use a exclusão caso queira cancelar.");
+          alert("Você não pode rejeitar sua própria proposta.");
           return;
         }
 
-        const motivo = prompt("Informe o motivo técnico da não confirmação / rejeição (será registrado na auditoria do fórum):");
-        if (motivo === null) return; // cancelou
+        const motivo = prompt("Informe a justificativa técnica da não confirmação / rejeição:");
+        if (motivo === null) return;
 
         item.status = "rejeitado";
         item.revisado_em = new Date().toISOString();
         item.revisor = sessaoAtual.instituicao;
-        item.motivo_rejeicao = motivo.trim() || "Inconformidade com as medições de campo.";
+        item.motivo_rejeicao = motivo.trim() || "Inconformidade com dados de campo.";
         salvar();
-        render(`Proposta de ${esc(item.municipio_nome)} rejeitada e arquivada no histórico de auditoria.`);
+        renderPainelMembro(`Proposta de ${esc(item.municipio_nome)} rejeitada.`);
       };
     });
   }
 
-  /* ---------- Renderização Principal ---------- */
-  function render(msgSucesso) {
+  function renderPainelMembro(msgSucesso) {
     const container = el();
     if (!container) return;
 
     const instAtual = sessaoAtual.instituicao;
     const ehAdmin = instAtual.papel === "admin";
 
-    // Filtros de negócio:
-    // 1. Aguardando confirmação (propostas de OUTRAS instituições que precisam da validação desta)
     const aguardando = correcoes.filter(c => c.status === "em_validacao" && (ehAdmin || c.instituicao_id !== instAtual.id));
-
-    // 2. Propostas da PRÓPRIA instituição que aguardam outro par
     const minhas = correcoes.filter(c => c.status === "em_validacao" && c.instituicao_id === instAtual.id);
-
-    // 3. Revisadas (certificadas ou rejeitadas)
-    const certificadas = correcoes.filter(c => c.status === "certificado");
-    const rejeitadas = correcoes.filter(c => c.status === "rejeitado");
-    const revisadas = certificadas.concat(rejeitadas).sort((a, b) => String(b.revisado_em || "").localeCompare(String(a.revisado_em || "")));
+    const revisadas = correcoes.filter(c => c.status === "certificado" || c.status === "rejeitado");
 
     container.innerHTML = `
-      <!-- Topo com dados da sessão e seletor rápido de instituição -->
       <div class="forum-topo">
         <div>
           <span>Conectado como: <b>${esc(sessaoAtual.usuario)}</b></span> · 
           <span class="pill ok">${esc(instAtual.sigla)}</span>
           <span class="letra-miuda">(${esc(instAtual.nome)})</span>
         </div>
-        <div style="display:flex;gap:8px;align-items:center">
-          <button class="btn btn-s" type="button" id="btnAlternarInst">Alternar Instituição</button>
-        </div>
-      </div>
-
-      <!-- Caixa para simular / alternar instituição com 1 clique -->
-      <div class="demo-inst-box" id="boxAlternar" hidden>
-        <b>Selecione qual instituição do Fórum você deseja representar agora:</b>
-        <p class="letra-miuda" style="margin:4px 0 8px">Permite testar na prática a certificação cruzada (ex.: proponha por uma entidade e confirme por outra).</p>
-        <div class="demo-inst-grid">
-          ${INSTITUICOES.map(inst => `
-            <button class="demo-inst-btn ${inst.id === instAtual.id ? "ativa" : ""}" type="button" data-inst-id="${inst.id}">
-              <b>${esc(inst.sigla)}</b><br><small style="font-weight:400">${esc(inst.papel === "admin" ? "Regulador" : "Membro")}</small>
-            </button>
-          `).join("")}
+        <div>
+          <button class="btn btn-s" type="button" id="btnSairForum">Sair da Conta</button>
         </div>
       </div>
 
       ${msgSucesso ? `<div class="nota-dados" style="margin:14px 0;background:var(--ok-bg);color:var(--ok);border-color:var(--ok)">${msgSucesso}</div>` : ""}
 
-      <!-- Card 1: Formulário para propor correção -->
       ${renderFormProposta()}
 
-      <!-- Card 2: Aguardando sua confirmação (correções de OUTRAS instituições) -->
       ${card(
         `Aguardando sua confirmação técnica <span class="cnt">${aguardando.length}</span>`,
         aguardando.length
           ? aguardando.map(c => linhaCorrecao(c, true)).join("")
           : aviso("Nenhuma correção de outra instituição aguardando confirmação no momento."),
         ehAdmin
-          ? "Como órgão regulador/coordenação (AGEPAR), você pode validar qualquer proposta."
+          ? "Como órgão regulador/coordenação (AGEPAR), você pode validar propostas técnicas."
           : `Aparecem apenas dados propostos por <b>outras instituições</b>: ninguém certifica o próprio dado.`
       )}
 
-      <!-- Card 3: Suas propostas em validação -->
       ${card(
         `Suas propostas aguardando confirmação externa <span class="cnt">${minhas.length}</span>`,
         minhas.length
@@ -475,7 +489,6 @@ window.OPS_FORUM = (() => {
         "Ficam visíveis até que outra instituição do Fórum realize a confirmação em campo."
       )}
 
-      <!-- Card 4: Dados certificados e revisados pelo fórum -->
       ${card(
         `Dados Certificados e Histórico Recente <span class="cnt">${revisadas.length}</span>`,
         revisadas.length
@@ -485,39 +498,51 @@ window.OPS_FORUM = (() => {
       )}
     `;
 
-    // Eventos de alternância rápida de instituição
-    const btnAlternar = $("#btnAlternarInst");
-    const boxAlternar = $("#boxAlternar");
-    if (btnAlternar && boxAlternar) {
-      btnAlternar.onclick = () => {
-        boxAlternar.hidden = !boxAlternar.hidden;
+    const btnSair = $("#btnSairForum");
+    if (btnSair) {
+      btnSair.onclick = async () => {
+        if (window.OPS_SERVICO) await window.OPS_SERVICO.sair();
+        sessaoAtual = null;
+        renderTelaLogin("Você saiu da Área do Fórum.");
       };
     }
-
-    $$(".demo-inst-btn").forEach(btn => {
-      btn.onclick = () => {
-        const id = Number(btn.getAttribute("data-inst-id"));
-        const novaInst = INSTITUICOES.find(i => i.id === id);
-        if (novaInst) {
-          sessaoAtual = {
-            usuario: `Técnico(a) ${novaInst.sigla}`,
-            instituicao: novaInst
-          };
-          try {
-            localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessaoAtual));
-          } catch (e) {}
-          render(`Instituição ativa alterada para <b>${esc(novaInst.sigla)}</b> (${esc(novaInst.nome)}).`);
-        }
-      };
-    });
 
     ligarEventosProposta();
     ligarAcoesRevisao();
   }
 
+  /* ---------- Ponto de Entrada ---------- */
+  function verificarSessaoERenderizar() {
+    // Se o usuário não tem sessão ativa, SEMPRE exibe a tela de login
+    if (!sessaoAtual) {
+      // Verificar se há sessão ativa salva no Supabase (ex: recarregou a página)
+      if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+        window.OPS_SERVICO.obterSessao().then(session => {
+          if (session && session.user) {
+            const email = session.user.email || "";
+            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+            sessaoAtual = {
+              usuario: email,
+              instituicao: instDetectada
+            };
+            renderPainelMembro();
+          } else {
+            renderTelaLogin();
+          }
+        }).catch(() => {
+          renderTelaLogin();
+        });
+      } else {
+        renderTelaLogin();
+      }
+    } else {
+      renderPainelMembro();
+    }
+  }
+
   return {
     abrir: function() {
-      render();
+      verificarSessaoERenderizar();
     },
     obterCertificadasPorMunicipio: function(nomeMunicipio) {
       return correcoes.filter(c => c.status === "certificado" && c.municipio_nome.toLowerCase() === String(nomeMunicipio).toLowerCase());

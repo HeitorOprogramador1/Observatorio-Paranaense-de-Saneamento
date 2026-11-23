@@ -59,6 +59,47 @@ window.OPS_SERVICO = (function() {
       }
 
       return { sucesso: true };
+    },
+
+    /* ---------- Métodos de Autenticação para Área do Fórum ---------- */
+    getCliente: obterCliente,
+
+    entrar: async function(email, senha) {
+      const sb = obterCliente();
+      if (!sb) throw new Error("A conexão com o servidor do Observatório (Supabase) não pôde ser inicializada.");
+      const { data, error } = await sb.auth.signInWithPassword({ email: String(email).trim(), password: String(senha) });
+      if (error) throw error;
+      return data;
+    },
+
+    sair: async function() {
+      const sb = obterCliente();
+      if (sb) {
+        try { await sb.auth.signOut(); } catch (e) {}
+      }
+    },
+
+    recuperarSenha: async function(email) {
+      const sb = obterCliente();
+      if (!sb) throw new Error("A conexão com o servidor do Observatório (Supabase) não pôde ser inicializada.");
+      const { data, error } = await sb.auth.resetPasswordForEmail(String(email).trim(), {
+        redirectTo: window.location.origin + window.location.pathname + "#forum"
+      });
+      if (error) throw error;
+      return data;
+    },
+
+    obterSessao: async function() {
+      const sb = obterCliente();
+      if (!sb) return null;
+      const { data } = await sb.auth.getSession();
+      return data ? data.session : null;
+    },
+
+    aoMudarSessao: function(callback) {
+      const sb = obterCliente();
+      if (!sb) return;
+      return sb.auth.onAuthStateChange(callback);
     }
   };
 })();
