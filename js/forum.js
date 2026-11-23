@@ -35,7 +35,7 @@ window.OPS_FORUM = (() => {
 
   function obterInstituicaoPorEmail(email) {
     const e = String(email || "").trim().toLowerCase();
-    if (e === "heitormuzzolon904@gmail.com" || e.startsWith("admin@")) {
+    if (e === "heitormuzzolon904@gmail.com" || e === "heitorff2020@gmail.com" || e.startsWith("admin@")) {
       return INSTITUICOES[0]; // Coordenação Geral (Admin Master)
     }
     return INSTITUICOES.find(i => i.dominio !== "geral" && e.includes(i.dominio)) || INSTITUICOES[1];
