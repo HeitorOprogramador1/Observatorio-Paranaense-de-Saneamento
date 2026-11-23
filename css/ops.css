@@ -231,12 +231,59 @@ th.n,td.n{text-align:right}
 .leg-matriz td svg{display:inline-block; vertical-align:middle}
 .leg-matriz tbody tr:hover th,.leg-matriz tbody tr:hover td{background:var(--surface-2)}
 .leg-matriz tbody tr:last-child th,.leg-matriz tbody tr:last-child td{border-bottom:0}
-.leg-lista{list-style:none; margin:8px 0 0; padding:0; display:grid; gap:6px; font-size:var(--fs-xs); color:var(--ink-2)}
-.leg-lista li{display:flex; align-items:center; gap:8px}
+
+/* Caixas enquadradas e rentes para itens adicionais e registros */
+.leg-extras-wrap{margin-top:10px; display:flex; flex-direction:column; gap:6px}
+.leg-extra-item{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:8px 12px;
+  background:var(--surface-2);
+  border:1px solid var(--line-2);
+  border-radius:var(--r);
+  font-size:var(--fs-xs);
+  color:var(--ink);
+  font-weight:500;
+  box-sizing:border-box;
+  width:100%;
+}
+.leg-extra-simb{display:inline-flex; align-items:center; justify-content:center; flex:none; width:22px; height:16px}
+.leg-extra-txt{flex:1; line-height:1.3}
+
+.leg-unidades-box{margin-top:12px; padding:10px 12px; background:var(--surface-2); border:1px solid var(--line-2); border-radius:var(--r)}
+.leg-unidades-rot{display:block; font-size:11px; font-weight:600; color:var(--ink-3); margin-bottom:6px; text-transform:uppercase; letter-spacing:.02em}
+.leg-unidades-btns{display:flex; gap:6px; flex-wrap:wrap}
+.leg-unid{border:1px solid var(--line); background:var(--surface); border-radius:4px; font-size:11px; font-weight:600; padding:3px 8px; color:var(--ink-2); cursor:pointer; transition:all .15s ease}
+.leg-unid:hover{border-color:var(--brand); color:var(--brand); background:var(--brand-soft)}
+.leg-unid.eta{border-color:var(--parana-green); color:var(--parana-green); background:var(--parana-green-soft)}
+.leg-unid.eta:hover{background:var(--parana-green); color:#fff}
+
 .leg-nota{margin:8px 0 0; font-size:var(--fs-xs); color:var(--ink-3); line-height:1.4}
-.leg-rodape{padding:10px 16px 14px; margin:0; background:var(--surface-2); font-size:11px}
-.leg-unid{border:1px solid var(--line); background:var(--surface); border-radius:4px; font-size:11px; font-weight:600; padding:2px 7px; color:var(--brand); cursor:pointer}
-.leg-unid:hover{border-color:var(--brand); background:var(--brand-soft)}
+.leg-rodape{padding:10px 16px 14px; margin:0; background:var(--surface-2); font-size:11px; border-top:1px solid var(--line-2)}
+
+/* Marcadores (pins técnicos) no mapa: perfeitamente enquadrados e rentes */
+.mk{
+  width:26px !important;
+  height:26px !important;
+  display:flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  box-sizing:border-box !important;
+  text-align:center !important;
+  line-height:1 !important;
+  padding:0 !important;
+  margin:0 !important;
+}
+.mk span{
+  display:block !important;
+  width:100% !important;
+  text-align:center !important;
+  line-height:1 !important;
+  font-size:10px !important;
+  font-weight:700 !important;
+  letter-spacing:-0.02em !important;
+}
 
 /* ---------- gráficos ---------- */
 .graf-wrap{position:relative}

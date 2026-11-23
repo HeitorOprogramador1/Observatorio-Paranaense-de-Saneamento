@@ -10,14 +10,14 @@
 "use strict";
 
 const LEG_COR = {
-  proposto: "#A600FF",
-  em_obra: "#FFA800",
-  desativado: "#8C8C8C",
-  existente_SES: "#FF0000",
-  existente_SAA: "#0000FF",
-  eta_existente: "#33FF00",
-  contorno: "#00E000",
-  rede: "#7FC4F0"
+  proposto: "#8B5CF6",
+  em_obra: "#F59E0B",
+  desativado: "#94A3B8",
+  existente_SES: "#EF4444",
+  existente_SAA: "#2563EB",
+  eta_existente: "#008744",
+  contorno: "#008744",
+  rede: "#38BDF8"
 };
 
 const LEG_SITUACOES = [
@@ -46,18 +46,18 @@ const LEG_TIPOS = {
 };
 
 function simbolo(forma, cor) {
-  const c = `fill="${cor}" stroke="#1B2430" stroke-width="1"`;
-  const svg = d => `<svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true">${d}</svg>`;
+  const c = `fill="${cor}" stroke="rgba(0,0,0,0.3)" stroke-width="1"`;
+  const svg = d => `<svg width="22" height="16" viewBox="0 0 22 16" aria-hidden="true" style="display:inline-block;vertical-align:middle">${d}</svg>`;
   switch (forma) {
     case "triangulo": return svg(`<polygon points="11,2 18,14 4,14" ${c}/>`);
-    case "quadrado": return svg(`<rect x="5" y="2" width="12" height="12" ${c}/>`);
+    case "quadrado": return svg(`<rect x="4" y="2" width="14" height="12" rx="2" ${c}/>`);
     case "circulo": return svg(`<circle cx="11" cy="8" r="6" ${c}/>`);
     case "losango": return svg(`<polygon points="11,1 18,8 11,15 4,8" ${c}/>`);
     case "pentagono": return svg(`<polygon points="11,1.5 18,6.5 15.5,14.5 6.5,14.5 4,6.5" ${c}/>`);
     case "linha": return svg(`<line x1="1" y1="8" x2="21" y2="8" stroke="${cor}" stroke-width="3"/>`);
     case "traco_longo": return svg(`<line x1="1" y1="8" x2="21" y2="8" stroke="${cor}" stroke-width="3" stroke-dasharray="7 3"/>`);
     case "traco_curto": return svg(`<line x1="1" y1="8" x2="21" y2="8" stroke="${cor}" stroke-width="3" stroke-dasharray="3 3"/>`);
-    case "contorno": return svg(`<rect x="3" y="3" width="16" height="10" fill="none" stroke="${cor}" stroke-width="2.5"/>`);
+    case "contorno": return svg(`<rect x="2" y="2" width="18" height="12" rx="2" fill="none" stroke="${cor}" stroke-width="2.2"/>`);
     case "anel": return svg(`<circle cx="11" cy="8" r="5" fill="#fff" stroke="#B42318" stroke-width="3"/>`);
     case "ponto": return svg(`<circle cx="11" cy="8" r="5" fill="#B42318" stroke="#fff" stroke-width="2"/>`);
   }
@@ -180,7 +180,7 @@ window.OPS_MAPA = {
             lat: pLat,
             lng: pLng,
             forma: "quadrado",
-            cor: "#33FF00",
+            cor: "#008744",
             origem: "GeoPR / IAT"
           });
         }
@@ -259,7 +259,7 @@ window.OPS_MAPA = {
       ativosSAA.push({ id: "RES-01", nome: `Reservatório Central Sanepar`, sis: "SAA", tipo: "Reservatório de Água Potável", lat: lat + 0.004, lng: lng + 0.006, forma: "circulo", cor: "#0000FF", origem: "Sanepar SAA" });
     } else {
       ativosSAA = [
-        { id: "ETA-01", nome: `ETA Principal Sanepar`, sis: "SAA", tipo: "Estação de Tratamento de Água (ETA)", lat: lat + 0.016, lng: lng + 0.020, forma: "quadrado", cor: "#33FF00", origem: "PRSB Concepção" },
+        { id: "ETA-01", nome: `ETA Principal Sanepar`, sis: "SAA", tipo: "Estação de Tratamento de Água (ETA)", lat: lat + 0.016, lng: lng + 0.020, forma: "quadrado", cor: "#008744", origem: "PRSB Concepção" },
         { id: "CAP-01", nome: `Captação Superficial IAT`, sis: "SAA", tipo: "Captação de Manancial", lat: lat + 0.024, lng: lng + 0.028, forma: "pentagono", cor: "#0000FF", origem: "PRSB Concepção" },
         { id: "RES-01", nome: `Reservatório de Distribuição`, sis: "SAA", tipo: "Reservatório de Água Potável", lat: lat + 0.004, lng: lng + 0.006, forma: "circulo", cor: "#0000FF", origem: "PRSB Concepção" }
       ];
@@ -440,23 +440,37 @@ window.OPS_MAPA = {
             <tbody>${linhas}</tbody>
           </table>
         </div>
-        <ul class="leg-lista">
-          ${extras.map(([f, c, n]) => `<li>${simbolo(f, c)}<span>${n}</span></li>`).join("")}
-        </ul>
+        <div class="leg-extras-wrap">
+          ${extras.map(([f, c, n]) => `
+            <div class="leg-extra-item">
+              <span class="leg-extra-simb">${simbolo(f, c)}</span>
+              <span class="leg-extra-txt">${n}</span>
+            </div>
+          `).join("")}
+        </div>
       </div>
 
       <div class="leg-sec">
         <h4>Registros no painel</h4>
-        <ul class="leg-lista">
-          <li>${simbolo("anel")}<span>Relato da população</span></li>
-          <li>${simbolo("ponto")}<span>Local marcado para relato</span></li>
-        </ul>
-        <p class="leg-nota" style="margin-top:8px">Unidades com ficha no município: 
-          <button class="leg-unid" onclick="window.OPS_MAPA.enquadrar()">ETE-01</button> 
-          <button class="leg-unid" onclick="window.OPS_MAPA.enquadrar()">EEE-01</button> 
-          <button class="leg-unid" onclick="window.OPS_MAPA.enquadrar()">EEE-02</button> 
-          <button class="leg-unid" onclick="window.OPS_MAPA.enquadrar()">ETA-01</button>
-        </p>
+        <div class="leg-extras-wrap">
+          <div class="leg-extra-item">
+            <span class="leg-extra-simb">${simbolo("anel")}</span>
+            <span class="leg-extra-txt">Relato confirmado da população</span>
+          </div>
+          <div class="leg-extra-item">
+            <span class="leg-extra-simb">${simbolo("ponto")}</span>
+            <span class="leg-extra-txt">Local indicado para novo relato</span>
+          </div>
+        </div>
+        <div class="leg-unidades-box">
+          <span class="leg-unidades-rot">Unidades na prancha municipal:</span>
+          <div class="leg-unidades-btns">
+            <button class="leg-unid" type="button" onclick="window.OPS_MAPA.enquadrar()">ETE-01</button> 
+            <button class="leg-unid" type="button" onclick="window.OPS_MAPA.enquadrar()">EEE-01</button> 
+            <button class="leg-unid" type="button" onclick="window.OPS_MAPA.enquadrar()">EEE-02</button> 
+            <button class="leg-unid eta" type="button" onclick="window.OPS_MAPA.enquadrar()">ETA-01</button>
+          </div>
+        </div>
       </div>
 
       <p class="leg-nota leg-rodape">
