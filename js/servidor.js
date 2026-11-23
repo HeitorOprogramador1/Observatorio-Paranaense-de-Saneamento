@@ -12,9 +12,20 @@ window.OPS_SERVICO = (function() {
     if (cliente) return cliente;
     const cfg = window.OPS_SUPABASE || {};
     if (cfg.url && cfg.chave && window.supabase && typeof window.supabase.createClient === "function") {
-      cliente = window.supabase.createClient(cfg.url, cfg.chave);
+      cliente = window.supabase.createClient(cfg.url, cfg.chave, {
+        auth: {
+          detectSessionInUrl: true,
+          persistSession: true,
+          autoRefreshToken: true
+        }
+      });
     }
     return cliente;
+  }
+
+  // Inicialização proativa para processar hash/tokens de autenticação
+  if (typeof window !== "undefined") {
+    setTimeout(obterCliente, 0);
   }
 
   return {

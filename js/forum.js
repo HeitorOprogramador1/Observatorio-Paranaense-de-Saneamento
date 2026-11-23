@@ -604,9 +604,21 @@ window.OPS_FORUM = (() => {
   /* ---------- Ponto de Entrada ---------- */
   function verificarSessaoERenderizar() {
     const hash = window.location.hash || "";
-    const isConviteOuRecuperacao = hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=signup");
+    const isConviteOuRecuperacao = hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=signup") || hash.includes("access_token=");
+
+    // Verificar se a URL retornou erro do Supabase (ex: link expirado)
+    if (hash.includes("error_description=")) {
+      const match = hash.match(/error_description=([^&]+)/);
+      const erroTexto = match ? decodeURIComponent(match[1].replace(/\+/g, " ")) : "O link de confirmação é inválido ou expirou.";
+      renderTelaLogin("Aviso do convite: " + erroTexto, true);
+      return;
+    }
 
     if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+      if (isConviteOuRecuperacao) {
+        renderTelaDefinirSenha("", "Validando credencial do convite...");
+      }
+
       window.OPS_SERVICO.obterSessao().then(session => {
         if (session && session.user) {
           const email = session.user.email || "";
@@ -620,11 +632,11 @@ window.OPS_FORUM = (() => {
             instituicao: instDetectada
           };
           renderPainelMembro();
-        } else {
+        } else if (!isConviteOuRecuperacao) {
           renderTelaLogin();
         }
       }).catch(() => {
-        renderTelaLogin();
+        if (!isConviteOuRecuperacao) renderTelaLogin();
       });
     } else {
       renderTelaLogin();
@@ -634,9 +646,14 @@ window.OPS_FORUM = (() => {
   // Monitorar se o usuário clicou em link de recuperação/convite enquanto a página já estava aberta
   if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
     window.OPS_SERVICO.aoMudarSessao((evento, session) => {
-      if (evento === "PASSWORD_RECOVERY" || (evento === "SIGNED_IN" && (window.location.hash || "").includes("type=invite"))) {
-        const email = (session && session.user && session.user.email) || "";
+      const email = (session && session.user && session.user.email) || "";
+      if (evento === "PASSWORD_RECOVERY" || (session && (window.location.hash || "").includes("type=invite"))) {
         renderTelaDefinirSenha(email);
+      } else if (evento === "SIGNED_IN" && email) {
+        const inputDefEmail = $("#fDefEmail");
+        if (inputDefEmail && !inputDefEmail.value) {
+          inputDefEmail.value = email;
+        }
       }
     });
   }

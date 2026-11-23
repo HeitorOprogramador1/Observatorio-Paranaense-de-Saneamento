@@ -51,12 +51,22 @@ window.OPS_APP = {
     // Inicializar repositório
     this.renderRepositorio();
 
-    // Sincronizar hash de URL se houver
-    const hash = window.location.hash.replace("#", "");
-    if (hash && document.getElementById(hash)) {
-      this.abrirAba(hash);
+    // Sincronizar hash de URL se houver ou detectar link de convite/autenticação
+    const rawHash = window.location.hash || "";
+    const isAuthToken = rawHash.includes("access_token=") || rawHash.includes("type=invite") || rawHash.includes("type=recovery") || rawHash.includes("type=signup") || rawHash.includes("error_description=");
+
+    if (isAuthToken) {
+      if (window.OPS_SERVICO && window.OPS_SERVICO.getCliente) {
+        window.OPS_SERVICO.getCliente();
+      }
+      this.abrirAba("forum", true);
     } else {
-      this.abrirAba("visao");
+      const hash = rawHash.replace("#", "");
+      if (hash && document.getElementById(hash)) {
+        this.abrirAba(hash);
+      } else {
+        this.abrirAba("visao");
+      }
     }
   },
 
@@ -143,7 +153,7 @@ window.OPS_APP = {
     });
   },
 
-  abrirAba: function(nomeAba) {
+  abrirAba: function(nomeAba, manterHash) {
     $$(".abas a[data-aba]").forEach(a => {
       const ativa = a.getAttribute("data-aba") === nomeAba;
       a.setAttribute("aria-selected", ativa ? "true" : "false");
@@ -177,7 +187,9 @@ window.OPS_APP = {
       window.OPS_FORUM.abrir();
     }
 
-    window.history.replaceState(null, null, "#" + nomeAba);
+    if (!manterHash) {
+      window.history.replaceState(null, null, "#" + nomeAba);
+    }
     window.scrollTo({ top: 0, behavior: "smooth" });
   },
 
