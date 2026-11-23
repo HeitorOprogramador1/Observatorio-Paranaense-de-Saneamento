@@ -11,7 +11,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Public+Sans:wght@400;500;600;700&display=swap">
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
-<link rel="stylesheet" href="css/ops.css?v=4">
+<link rel="stylesheet" href="css/ops.css?v=5">
 <style>
 /* Estilos específicos para créditos institucionais no topo e rodapé */
 .credito-bloco{display:inline-flex; align-items:center; gap:14px; margin-left:auto}
@@ -80,6 +80,7 @@
       <a role="tab" href="#participacao" data-aba="participacao">Participação cidadã</a>
       <a role="tab" href="#repositorio" data-aba="repositorio">Repositório de estudos</a>
       <a role="tab" href="#fontes" data-aba="fontes">Fontes e método</a>
+      <a role="tab" href="#forum" data-aba="forum">Área do fórum</a>
     </div>
   </nav>
 </header>
@@ -345,6 +346,15 @@
     </div>
   </section>
 
+  <!-- ================= SEÇÃO 7: ÁREA DO FÓRUM ================= -->
+  <section class="aba" id="forum" data-aba-painel="forum" aria-labelledby="t-forum" hidden>
+    <div class="sec-cab">
+      <h2 id="t-forum">Área do Fórum Permanente de Saneamento</h2>
+      <p class="desc">Acesso das instituições do Fórum Permanente de Saneamento para corrigir dados e certificá-los. Uma correção só vira <b>certificada</b> quando outra instituição do fórum confirma. O público vê apenas os dados certificados.</p>
+    </div>
+    <div id="forumConteudo"></div>
+  </section>
+
 </main>
 
 <!-- RODAPÉ INSTITUCIONAL COM LOGOS E CRÉDITOS "ELABORADO POR" -->
@@ -388,8 +398,9 @@
 <script src="js/config.js"></script>
 <script src="js/servidor.js"></script>
 <script src="js/graficos.js"></script>
-<script src="js/mapa.js?v=4"></script>
-<script src="js/app.js?v=4"></script>
+<script src="js/mapa.js?v=5"></script>
+<script src="js/app.js?v=5"></script>
+<script src="js/forum.js?v=5"></script>
 
 </body>
 </html>

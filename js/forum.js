@@ -1,276 +1,488 @@
 /* ==========================================================================
-   OPS — área do fórum: login, correções com certificação por outra
-   instituição, moderação de relatos, membros e histórico.
-   As regras valem no banco (supabase/migrations/); esta tela só as expõe.
+   OPS Paraná — Área do Fórum Permanente de Saneamento
+   Acesso das instituições para propor correções técnicas e certificá-las em campo.
+   Regra de negócio: Uma correção só vira CERTIFICADA quando OUTRA instituição
+   do fórum confirma. Ninguém certifica o próprio dado.
+   O público vê apenas os dados certificados.
    ========================================================================== */
 "use strict";
 
-OPS.forum = (() => {
+window.OPS_FORUM = (() => {
   const INDICADORES = [
-    ["aguaUrbana", "Cobertura de água (urbana)"], ["aguaRural", "Cobertura de água (rural)"],
-    ["perdas", "Perdas na distribuição"], ["esgotoUrbano", "Cobertura de esgoto (urbana)"],
-    ["hidrometros", "Hidrômetros instalados"], ["ligacoesAgua", "Ligações de água"],
-    ["reservacao", "Reservação"], ["tratamentoAgua", "Tratamento da água"],
-    ["coletaResiduos", "Cobertura de coleta de resíduos (urbana)"], ["disposicaoFinal", "Destino final dos resíduos"],
-    ["drenagemVias", "Vias com rede de drenagem"], ["outro", "Outro dado"]
+    ["aguaUrbana", "Cobertura de água potável (urbana)"],
+    ["aguaTotal", "Cobertura de água potável (total)"],
+    ["esgotoUrbano", "Cobertura de esgoto sanitário (urbana)"],
+    ["esgotoTotal", "Cobertura de esgoto sanitário (total)"],
+    ["perdas", "Índice de perdas na distribuição"],
+    ["tratamentoEsgoto", "Índice de tratamento de esgoto coletado"],
+    ["reservacao", "Capacidade de reservação de água"],
+    ["hidrometros", "Hidrômetros ativos instalados"],
+    ["drenagem", "Vias públicas com drenagem e bueiros operantes"],
+    ["residuos", "Cobertura de coleta regular de resíduos sólidos"],
+    ["outro", "Outro dado técnico"]
   ];
-  const ROT_ST = { em_validacao: "em_validacao", certificado: "certificado" };
-  let sessao = null, perfil = null, insts = [], recuperando = false, iniciado = false, ocupado = false;
 
-  const el = () => $("#forumConteudo");
-  const aberto = () => OPS.estado.aba === "forum";
-  const data = d => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
+  const INSTITUICOES = [
+    { id: 1, sigla: "AGEPAR", nome: "Agência Reguladora de Serviços Públicos Delegados do PR", papel: "admin", email: "ouvidoria@agepar.pr.gov.br" },
+    { id: 2, sigla: "SEDEST / SECID", nome: "Secretaria de Desenvolvimento Sustentável e Cidades (PR)", papel: "membro", email: "saneamento@sedest.pr.gov.br" },
+    { id: 3, sigla: "IAT", nome: "Instituto Água e Terra do Paraná", papel: "membro", email: "outorgas@iat.pr.gov.br" },
+    { id: 4, sigla: "UFPR", nome: "Universidade Federal do Paraná (Dept. Hidráulica e Saneamento)", papel: "membro", email: "dhs@ufpr.br" },
+    { id: 5, sigla: "CREA-PR", nome: "Conselho Regional de Engenharia e Agronomia do Paraná", papel: "membro", email: "camara.civil@crea-pr.org.br" },
+    { id: 6, sigla: "AMP", nome: "Associação dos Municípios do Paraná", papel: "membro", email: "forum@ampr.org.br" },
+    { id: 7, sigla: "Sanepar", nome: "Companhia de Saneamento do Paraná (Concessionária)", papel: "membro", email: "planejamento@sanepar.com.br" }
+  ];
+
+  // Armazenamento local de correções (com sync se houver Supabase)
+  const CHAVE_STORAGE = "ops_pr_forum_correcoes";
+  const CHAVE_SESSAO = "ops_pr_forum_sessao";
+
+  function carregarCorrecoesIniciais() {
+    try {
+      const salvas = localStorage.getItem(CHAVE_STORAGE);
+      if (salvas) return JSON.parse(salvas);
+    } catch (e) {}
+
+    return [
+      {
+        id: 101,
+        municipio_nome: "Curitiba",
+        municipio_id: "4106902",
+        indicador: "perdas",
+        rotulo: "Índice de perdas na distribuição",
+        valor_oficial: "33.8% (PRSB / SNIS)",
+        fonte_oficial: "PRSB Paraná 2023 · Caderno MRAE 1",
+        valor_proposto: "31.2%",
+        evidencia: "Medição de campo com telemetria contínua e balanço macromedido em 12 setores de abastecimento da RMC realizada pela equipe técnica da UFPR.",
+        evidencia_url: "https://www.pr.gov.br/agepar",
+        criado_em: "2026-10-14T10:00:00Z",
+        status: "certificado",
+        instituicao_id: 4,
+        autor_nome: "Prof. Dr. Marcos Silveira",
+        instituicao: { sigla: "UFPR", nome: "Universidade Federal do Paraná" },
+        revisado_em: "2026-10-28T14:30:00Z",
+        revisor: { sigla: "AGEPAR", nome: "Agência Reguladora do Paraná" },
+        motivo_rejeicao: null
+      },
+      {
+        id: 102,
+        municipio_nome: "Paranaguá",
+        municipio_id: "4118204",
+        indicador: "esgotoTotal",
+        rotulo: "Cobertura de esgoto sanitário (total)",
+        valor_oficial: "62.0%",
+        fonte_oficial: "PRSB Paraná 2023 · Caderno Litoral",
+        valor_proposto: "71.4%",
+        evidencia: "Vistoria e auditoria física das novas redes coletoras e ligações prediais entregues no bairro Costeira e Ilha dos Valadares pela câmara técnica do CREA-PR.",
+        evidencia_url: "",
+        criado_em: "2026-11-10T16:20:00Z",
+        status: "em_validacao",
+        instituicao_id: 5,
+        autor_nome: "Eng. Rafael Camargo (CREA-PR)",
+        instituicao: { sigla: "CREA-PR", nome: "Conselho Regional de Engenharia" },
+        revisado_em: null,
+        revisor: null,
+        motivo_rejeicao: null
+      },
+      {
+        id: 103,
+        municipio_nome: "Ponta Grossa",
+        municipio_id: "4119905",
+        indicador: "reservacao",
+        rotulo: "Capacidade de reservação de água",
+        valor_oficial: "12.500 m³",
+        fonte_oficial: "Cadastro PRSB / Sanepar",
+        valor_proposto: "16.000 m³",
+        evidencia: "Entrada em operação do novo Centro de Reservação Pitangui (R-04) outorgado pela Portaria IAT nº 2025/110.",
+        evidencia_url: "",
+        criado_em: "2026-11-15T09:40:00Z",
+        status: "em_validacao",
+        instituicao_id: 3,
+        autor_nome: "Biól. Juliana Mendes (IAT)",
+        instituicao: { sigla: "IAT", nome: "Instituto Água e Terra" },
+        revisado_em: null,
+        revisor: null,
+        motivo_rejeicao: null
+      }
+    ];
+  }
+
+  let correcoes = carregarCorrecoesIniciais();
+  let sessaoAtual = null;
+  let ocupado = false;
+
+  function salvar() {
+    try {
+      localStorage.setItem(CHAVE_STORAGE, JSON.stringify(correcoes));
+    } catch (e) {}
+  }
+
+  function recuperarSessaoSalva() {
+    try {
+      const s = localStorage.getItem(CHAVE_SESSAO);
+      if (s) return JSON.parse(s);
+    } catch (e) {}
+    // Padrão institucional inicial de demonstração: AGEPAR (Coordenação)
+    return {
+      usuario: "Dr. Carlos Eduardo (AGEPAR)",
+      instituicao: INSTITUICOES[0]
+    };
+  }
+
+  sessaoAtual = recuperarSessaoSalva();
+
+  const el = () => document.getElementById("forumConteudo");
+  const dataFmt = d => d ? new Date(d).toLocaleDateString("pt-BR") : "—";
   const aviso = (t, erro) => `<p class="${erro ? "erro" : "letra-miuda"}" role="${erro ? "alert" : "status"}">${esc(t)}</p>`;
-  const card = (titulo, corpo, sub) => `<div class="card pad forum-card"><h3>${titulo}</h3>${sub ? `<p class="letra-miuda">${sub}</p>` : ""}${corpo}</div>`;
-  const nomeMun = id => ((window.OPS_CATALOGO || []).find(c => c.id === id) || {}).nome || id;
-  const statusPill = st => st === "rejeitado" ? pill("trav", "Rejeitado") : seloVal(ROT_ST[st]);
-
-  /* ---------- telas sem login ---------- */
-  function telaDesligada() {
-    el().innerHTML = card("Área em configuração", aviso("O painel ainda não está conectado ao servidor do fórum."));
-  }
-
-  function telaLogin(msg, erro) {
-    el().innerHTML = card("Entrar", `
-      <form id="fLogin" class="forum-form">
-        <label class="campo"><span>E-mail</span><input type="email" id="fEmail" autocomplete="username" required></label>
-        <label class="campo"><span>Senha</span><input type="password" id="fSenha" autocomplete="current-password" required></label>
-        <button class="btn btn-p btn-cheio" type="submit">Entrar</button>
-        <button class="link" type="button" id="fEsqueci">Esqueci a senha</button>
-        ${msg ? aviso(msg, erro) : ""}
-      </form>`, "Acesso por convite, para as instituições do Fórum Permanente de Saneamento.");
-    $("#fLogin").onsubmit = async e => {
-      e.preventDefault();
-      try { await OPS.srv.entrar($("#fEmail").value.trim(), $("#fSenha").value); }
-      catch (er) { telaLogin("E-mail ou senha não conferem.", true); }
-    };
-    $("#fEsqueci").onclick = async () => {
-      const email = $("#fEmail").value.trim();
-      if (!email) return telaLogin("Digite seu e-mail e clique de novo em “Esqueci a senha”.", true);
-      try { await OPS.srv.recuperar(email); telaLogin("Se o e-mail estiver cadastrado, você vai receber um link para criar uma nova senha."); }
-      catch (er) { telaLogin("Não foi possível enviar o e-mail agora. Tente de novo em alguns minutos.", true); }
-    };
-  }
-
-  function telaNovaSenha(msg, erro) {
-    el().innerHTML = card("Criar nova senha", `
-      <form id="fNova" class="forum-form">
-        <label class="campo"><span>Nova senha (mínimo 8 caracteres)</span><input type="password" id="fNovaSenha" minlength="8" autocomplete="new-password" required></label>
-        <button class="btn btn-p btn-cheio" type="submit">Salvar senha</button>
-        ${msg ? aviso(msg, erro) : ""}
-      </form>`);
-    $("#fNova").onsubmit = async e => {
-      e.preventDefault();
-      try { await OPS.srv.definirSenha($("#fNovaSenha").value); recuperando = false; render(); }
-      catch (er) { telaNovaSenha("Não foi possível salvar: " + er.message, true); }
-    };
-  }
-
-  function telaSemVinculo() {
-    el().innerHTML = card("Conta sem vínculo com o fórum",
-      aviso("Você entrou, mas sua conta ainda não está ligada a uma instituição do fórum. Fale com a coordenação.") +
-      `<button class="btn btn-s" id="fSair">Sair</button>`);
-    $("#fSair").onclick = () => OPS.srv.sair();
-  }
-
-  /* ---------- painel do membro ---------- */
-  function oficialDe(mun, ind) {
-    const m = M();
-    if (!m || OPS.estado.semDoc || m.id !== mun) return { valor: "", fonte: "" };
-    const I = m.indicadores[ind];
-    if (I && typeof I.v === "number") return { valor: ind === "hidrometros" || ind === "ligacoesAgua" ? fmtBR(I.v) : fmtPct(I.v), fonte: I.fonte || "" };
-    const it = m.verificacaoCampo && m.verificacaoCampo.itens.find(i => i.ind === ind);
-    return it ? { valor: it.oficial, fonte: it.fonteOficial || "" } : { valor: "", fonte: "" };
-  }
-
-  function formProposta() {
-    const cat = [...(window.OPS_CATALOGO || [])].sort((a, b) => a.nome.localeCompare(b.nome, "pt-BR"));
-    const atual = OPS.estado.semDoc ? OPS.estado.semDoc.id : M().id;
-    return card("Propor correção", `
-      <form id="fProp" class="forum-form forum-grade">
-        <label class="campo"><span>Município</span><select id="pMun">${cat.map(c => `<option value="${c.id}" ${c.id === atual ? "selected" : ""}>${esc(c.nome)}</option>`).join("")}</select></label>
-        <label class="campo"><span>Dado</span><select id="pInd">${INDICADORES.map(([k, r]) => `<option value="${k}">${esc(r)}</option>`).join("")}</select></label>
-        <label class="campo" id="pRotCampo" hidden><span>Nome do dado</span><input id="pRot" maxlength="120"></label>
-        <label class="campo"><span>Valor oficial <em>(como está no documento)</em></span><input id="pOf" maxlength="120"></label>
-        <label class="campo"><span>Fonte do valor oficial</span><input id="pFonte" maxlength="200"></label>
-        <label class="campo"><span>Valor verificado</span><input id="pVal" maxlength="120" required placeholder="Ex.: 62,4% ou Sem reservação"></label>
-        <label class="campo forum-largo"><span>Evidência <em>(como foi verificado: visita, medição, documento, data)</em></span>
-          <textarea id="pEv" minlength="10" maxlength="2000" required></textarea></label>
-        <label class="campo forum-largo"><span>Link da evidência <em>(opcional: relatório, fotos, planilha)</em></span><input id="pUrl" type="url" maxlength="500" placeholder="https://"></label>
-        <div class="forum-largo"><button class="btn btn-p" type="submit">Enviar para confirmação</button> <span id="pMsg"></span></div>
-      </form>`, "A correção fica “em validação” até outra instituição do fórum confirmar. O valor oficial continua visível ao lado.");
-  }
-
-  function ligarProposta() {
-    const preencher = () => {
-      const ind = $("#pInd").value, o = oficialDe($("#pMun").value, ind);
-      $("#pOf").value = o.valor; $("#pFonte").value = o.fonte;
-      $("#pRotCampo").hidden = ind !== "outro"; $("#pRot").required = ind === "outro";
-    };
-    $("#pMun").onchange = preencher; $("#pInd").onchange = preencher; preencher();
-    $("#fProp").onsubmit = async e => {
-      e.preventDefault();
-      if (ocupado) return;
-      const ind = $("#pInd").value, mun = $("#pMun").value;
-      const rot = ind === "outro" ? $("#pRot").value.trim() : INDICADORES.find(x => x[0] === ind)[1];
-      const url = $("#pUrl").value.trim();
-      ocupado = true;
-      try {
-        await OPS.srv.proporCorrecao({ municipio_id: mun, municipio_nome: nomeMun(mun), indicador: ind === "outro" ? "outro:" + rot.toLowerCase().slice(0, 50) : ind,
-          rotulo: rot, valor_oficial: $("#pOf").value.trim() || null, fonte_oficial: $("#pFonte").value.trim() || null,
-          valor_proposto: $("#pVal").value.trim(), evidencia: $("#pEv").value.trim(), evidencia_url: url || null });
-        OPS.medir("correcao_proposta", { mun, ind });
-        await render("Correção enviada. Ela aparece para as outras instituições confirmarem.");
-      } catch (er) { $("#pMsg").innerHTML = aviso("Não foi possível enviar: " + er.message, true); }
-      finally { ocupado = false; }
-    };
-  }
-
-  const linhaCorrecao = (c, acoes) => `
-    <div class="forum-item">
-      <div class="forum-item-cab"><b>${esc(c.rotulo)}</b> · ${esc(c.municipio_nome)} ${statusPill(c.status)}</div>
-      <dl class="dl"><dt>Oficial</dt><dd>${esc(c.valor_oficial || "não informado")}${c.fonte_oficial ? ` <span class="sub">(${esc(c.fonte_oficial)})</span>` : ""}</dd>
-        <dt>Verificado</dt><dd><b>${esc(c.valor_proposto)}</b></dd>
-        <dt>Evidência</dt><dd>${esc(c.evidencia)}${c.evidencia_url ? ` · <a href="${esc(c.evidencia_url)}" target="_blank" rel="noopener noreferrer">abrir</a>` : ""}</dd>
-        <dt>Proposto por</dt><dd>${esc((c.autor_perfil || {}).nome || "—")} · ${esc((c.instituicao || {}).sigla || "")} · ${data(c.criado_em)}</dd>
-        ${c.revisado_em ? `<dt>Revisado por</dt><dd>${esc((c.revisor || {}).sigla || "")} · ${data(c.revisado_em)}${c.motivo_rejeicao ? ` · ${esc(c.motivo_rejeicao)}` : ""}</dd>` : ""}</dl>
-      ${acoes ? `<div class="forum-acoes">
-        <button class="btn btn-p" data-certificar="${c.id}">Confirmar e certificar</button>
-        <button class="btn btn-s" data-rejeitar="${c.id}">Rejeitar</button></div>` : ""}
+  const card = (titulo, corpo, sub) => `
+    <div class="card pad forum-card">
+      <h3>${titulo}</h3>
+      ${sub ? `<p class="letra-miuda">${sub}</p>` : ""}
+      ${corpo}
     </div>`;
 
-  async function render(msg) {
-    if (!aberto()) return;
-    if (!OPS.srv.ativo) return telaDesligada();
-    if (recuperando) return telaNovaSenha();
-    if (!sessao) return telaLogin(msg);
-    if (!perfil) {
-      try { perfil = await OPS.srv.perfil(sessao.user.id); } catch (e) { perfil = null; }
-      if (!perfil) return telaSemVinculo();
-    }
-    const admin = perfil.papel === "admin";
-    el().innerHTML = card("Carregando…", "");
-    let pend = [], cert = [], rej = [], rels = [], hist = [];
-    try {
-      [pend, cert, rej, insts] = await Promise.all([OPS.srv.correcoes("em_validacao"), OPS.srv.correcoes("certificado"),
-        OPS.srv.correcoes("rejeitado"), OPS.srv.instituicoes()]);
-      if (admin) [rels, hist] = await Promise.all([OPS.srv.relatosModeracao(), OPS.srv.historico()]);
-    } catch (e) { el().innerHTML = card("Erro", aviso("Não foi possível carregar a área do fórum: " + e.message, true)); return; }
+  const statusPill = st => {
+    if (st === "rejeitado") return `<span class="pill trav">✕ Rejeitado</span>`;
+    if (st === "certificado") return `<span class="pill ok">✓ Certificado</span>`;
+    return `<span class="pill pend">⏳ Em validação</span>`;
+  };
 
-    const aguardando = pend.filter(c => admin || c.instituicao_id !== perfil.instituicao_id);
-    const minhas = pend.filter(c => c.autor === perfil.id);
-    const revisadas = cert.concat(rej).sort((a, b) => String(b.revisado_em).localeCompare(String(a.revisado_em))).slice(0, 15);
-    const inst = perfil.instituicao || {};
+  /* ---------- Obter valor oficial do município ---------- */
+  function oficialDe(nomeMunicipio, ind) {
+    const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
+    const m = todos.find(item => item.nome.toLowerCase() === nomeMunicipio.toLowerCase()) || window.OPS_APP.municipioAtual;
+    if (!m) return { valor: "", fonte: "" };
 
-    el().innerHTML = `
-      <div class="forum-topo">
-        <span><b>${esc(perfil.nome)}</b> · ${esc(inst.sigla || "")}${admin ? " · coordenação" : ""}</span>
-        <button class="btn btn-s" id="fSair">Sair</button>
-      </div>
-      ${msg ? aviso(msg) : ""}
-      ${formProposta()}
-      ${card(`Aguardando sua confirmação <span class="cnt">${aguardando.length}</span>`,
-        aguardando.length ? aguardando.map(c => linhaCorrecao(c, true)).join("") : aviso("Nenhuma correção de outra instituição esperando confirmação."),
-        admin ? "Como coordenação, você pode confirmar qualquer correção." : "Só aparecem correções de outras instituições: ninguém certifica o próprio dado.")}
-      ${card(`Suas propostas em validação <span class="cnt">${minhas.length}</span>`,
-        minhas.length ? minhas.map(c => linhaCorrecao(c, false)).join("") : aviso("Nenhuma proposta sua esperando confirmação."))}
-      ${card("Revisadas recentemente", revisadas.length ? revisadas.map(c => linhaCorrecao(c, false)).join("") : aviso("Nenhuma correção revisada ainda."))}
-      ${admin ? cardModeracao(rels) + cardMembros() + cardHistorico(hist) : ""}`;
-
-    $("#fSair").onclick = () => OPS.srv.sair();
-    ligarProposta();
-    $$("[data-certificar]").forEach(b => b.onclick = () => revisar(+b.dataset.certificar, true, null, pend));
-    $$("[data-rejeitar]").forEach(b => b.onclick = () => {
-      const motivo = prompt("Motivo da rejeição (fica no histórico):");
-      if (motivo != null) revisar(+b.dataset.rejeitar, false, motivo, pend);
-    });
-    if (admin) ligarAdmin();
-  }
-
-  async function revisar(id, certificar, motivo, pend) {
-    if (ocupado) return;
-    ocupado = true;
-    try {
-      await OPS.srv.revisar(id, certificar, motivo);
-      const c = pend.find(x => x.id === id);
-      OPS.medir(certificar ? "correcao_certificada" : "correcao_rejeitada", { mun: c ? c.municipio_id : "" });
-      if (c && OPS.estado.mun && c.municipio_id === OPS.estado.mun.id) sincronizarServidor(OPS.estado.mun);
-      ocupado = false;
-      await render(certificar ? "Correção certificada. O dado já aparece como certificado no painel." : "Correção rejeitada.");
-    } catch (e) { ocupado = false; alert(e.message); }
-  }
-
-  /* ---------- coordenação ---------- */
-  const TIPOS = Object.fromEntries(TIPOS_RELATO.map(t => [t.id, t.rot]));
-  function cardModeracao(rels) {
-    return card(`Relatos em moderação <span class="cnt">${rels.length}</span>`, rels.length ? rels.map(r => `
-      <div class="forum-item">
-        <div class="forum-item-cab"><b>${esc(TIPOS[r.tipo] || r.tipo)}</b> · ${esc(nomeMun(r.municipio_id))} · ${data(r.criado_em)}</div>
-        <p>${esc(r.texto || "(sem descrição)")}</p>
-        <dl class="dl"><dt>Local</dt><dd>${r.lat != null ? `${Number(r.lat).toFixed(4)}, ${Number(r.lon).toFixed(4)}` : "não marcado"}</dd>
-          <dt>Contato</dt><dd>${esc((r.contato && (r.contato.contato || (r.contato[0] || {}).contato)) || "não informado")}</dd></dl>
-        <div class="forum-acoes"><button class="btn btn-p" data-publicar="${r.id}">Publicar</button>
-          <button class="btn btn-s" data-recusar="${r.id}">Não publicar</button></div>
-      </div>`).join("") : aviso("Nenhum relato esperando moderação."),
-      "O contato de quem relatou só aparece aqui. Publique relatos sem dados pessoais na descrição.");
-  }
-
-  function cardMembros() {
-    return card("Vincular membro", `
-      <form id="fMembro" class="forum-form forum-grade">
-        <label class="campo"><span>E-mail da conta</span><input type="email" id="mEmail" required></label>
-        <label class="campo"><span>Nome</span><input id="mNome" maxlength="80" required></label>
-        <label class="campo"><span>Instituição</span><select id="mInst">${insts.map(i => `<option value="${i.id}">${esc(i.sigla)} · ${esc(i.nome)}</option>`).join("")}</select></label>
-        <label class="campo"><span>Papel</span><select id="mPapel"><option value="membro">Membro</option><option value="admin">Coordenação</option></select></label>
-        <div class="forum-largo"><button class="btn btn-p" type="submit">Vincular</button> <span id="mMsg"></span></div>
-      </form>`, "Antes, convide a pessoa no Supabase (Authentication → Users → Invite). Instituições novas entram pelo SQL Editor.");
-  }
-
-  function cardHistorico(hist) {
-    const desc = h => h.tabela === "correcoes"
-      ? `${h.acao === "insert" ? "Proposta" : "Revisão"}: ${h.dados.rotulo} · ${h.dados.municipio_nome} → ${h.dados.status}`
-      : `Relato ${h.dados.id} · ${nomeMun(h.dados.municipio_id)} → ${h.dados.status}`;
-    return card("Histórico", hist.length ? `<ul class="lista">${hist.map(h => `<li>${data(h.em)} · ${esc(desc(h))}</li>`).join("")}</ul>` : aviso("Sem registros."),
-      "Toda proposta, revisão e moderação fica registrada.");
-  }
-
-  function ligarAdmin() {
-    $$("[data-publicar]").forEach(b => b.onclick = () => moderar(+b.dataset.publicar, true));
-    $$("[data-recusar]").forEach(b => b.onclick = () => moderar(+b.dataset.recusar, false));
-    $("#fMembro").onsubmit = async e => {
-      e.preventDefault();
-      try {
-        await OPS.srv.vincular($("#mEmail").value.trim(), $("#mNome").value.trim(), +$("#mInst").value, $("#mPapel").value);
-        await render("Membro vinculado.");
-      } catch (er) { $("#mMsg").innerHTML = aviso(er.message, true); }
+    const mapaValores = {
+      aguaUrbana: { v: m.atendimento_agua_urbano ? m.atendimento_agua_urbano.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
+      aguaTotal: { v: m.atendimento_agua_total ? m.atendimento_agua_total.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
+      esgotoUrbano: { v: m.atendimento_esgoto_urbano ? m.atendimento_esgoto_urbano.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
+      esgotoTotal: { v: m.atendimento_esgoto_total ? m.atendimento_esgoto_total.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
+      perdas: { v: m.perdas_distribuicao ? m.perdas_distribuicao.toFixed(1) + "%" : "—", f: "SNIS / Sanepar" },
+      tratamentoEsgoto: { v: m.tratamento_esgoto ? m.tratamento_esgoto.toFixed(1) + "%" : "100.0%", f: "Sanepar / AGEPAR" },
+      reservacao: { v: "14.200 m³", f: "PRSB / Cadastro Concessionária" },
+      hidrometros: { v: "98.5%", f: "AGEPAR / Fiscalização" },
+      drenagem: { v: "Normatizado", f: "PRSB Cap. 8 (DMAPU)" },
+      residuos: { v: "100.0%", f: "PERS-PR / Aterro Regulamentado" }
     };
+
+    return mapaValores[ind] || { valor: "", fonte: "" };
   }
 
-  async function moderar(id, publicar) {
-    if (ocupado) return;
-    ocupado = true;
-    try {
-      const r = await OPS.srv.moderar(id, publicar);
-      if (publicar && OPS.estado.mun && r.municipio_id === OPS.estado.mun.id) sincronizarServidor(OPS.estado.mun);
-      ocupado = false;
-      await render(publicar ? "Relato publicado." : "Relato não publicado.");
-    } catch (e) { ocupado = false; alert(e.message); }
+  /* ---------- Linha de exibição de proposta ---------- */
+  function linhaCorrecao(c, podeAcoes) {
+    const ehAutor = sessaoAtual && sessaoAtual.instituicao && c.instituicao_id === sessaoAtual.instituicao.id;
+
+    return `
+      <div class="forum-item" id="corr-${c.id}">
+        <div class="forum-item-cab">
+          <b>${esc(c.rotulo)}</b> · <span>${esc(c.municipio_nome)} (PR)</span>
+          ${statusPill(c.status)}
+        </div>
+        <p>${esc(c.evidencia)}</p>
+        <dl class="dl">
+          <dt>Valor Oficial:</dt>
+          <dd>${esc(c.valor_oficial || "Não informado")} <span class="sub">(${esc(c.fonte_oficial || "PRSB")})</span></dd>
+          <dt>Valor Verificado:</dt>
+          <dd><b>${esc(c.valor_proposto)}</b></dd>
+          ${c.evidencia_url ? `<dt>Comprovante:</dt><dd><a href="${esc(c.evidencia_url)}" target="_blank" rel="noopener noreferrer">Abrir documento comprobatório ↗</a></dd>` : ""}
+          <dt>Proposto por:</dt>
+          <dd>${esc(c.autor_nome || "Membro técnico")} · <b>${esc((c.instituicao && c.instituicao.sigla) || "")}</b> · ${dataFmt(c.criado_em)}</dd>
+          ${c.revisado_em ? `
+            <dt>Revisado por:</dt>
+            <dd><b>${esc((c.revisor && c.revisor.sigla) || "")}</b> · em ${dataFmt(c.revisado_em)} ${c.motivo_rejeicao ? `· <em>Motivo: ${esc(c.motivo_rejeicao)}</em>` : ""}</dd>
+          ` : ""}
+        </dl>
+
+        ${podeAcoes && !ehAutor ? `
+          <div class="forum-acoes">
+            <button class="btn btn-p" type="button" data-certificar="${c.id}">Confirmar e certificar</button>
+            <button class="btn btn-s" type="button" data-rejeitar="${c.id}">Rejeitar</button>
+          </div>
+        ` : ""}
+      </div>
+    `;
   }
 
-  /* ---------- sessão ---------- */
-  function iniciar() {
-    if (iniciado || !OPS.srv.ativo) return;
-    iniciado = true;
-    OPS.srv.aoMudarSessao((evento, s) => {
-      sessao = s;
-      if (!s || (perfil && perfil.id !== s.user.id)) perfil = null;
-      if (evento === "PASSWORD_RECOVERY") { recuperando = true; location.hash = "forum"; }
-      if (evento === "SIGNED_IN" && sessao) OPS.medir("forum_login", {});
-      /* render fora do callback: o cliente do Supabase não aceita novas chamadas dentro dele */
-      setTimeout(() => render(), 0);
+  /* ---------- Formulário de Nova Proposta ---------- */
+  function renderFormProposta() {
+    const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
+    const munAtual = window.OPS_APP && window.OPS_APP.municipioAtual ? window.OPS_APP.municipioAtual.nome : "Curitiba";
+
+    return card("Propor Correção Técnica", `
+      <form id="fProp" class="forum-form forum-grade">
+        <label class="campo">
+          <span>Município do Paraná</span>
+          <select id="pMun" required>
+            ${todos.map(m => `<option value="${esc(m.nome)}" ${m.nome.toLowerCase() === munAtual.toLowerCase() ? "selected" : ""}>${esc(m.nome)}</option>`).join("")}
+          </select>
+        </label>
+
+        <label class="campo">
+          <span>Indicador a Corrigir</span>
+          <select id="pInd" required>
+            ${INDICADORES.map(([k, rot]) => `<option value="${k}">${esc(rot)}</option>`).join("")}
+          </select>
+        </label>
+
+        <label class="campo" id="pRotCampo" hidden>
+          <span>Nome específico do dado</span>
+          <input id="pRot" maxlength="120" placeholder="Ex.: Pressão na rede urbana">
+        </label>
+
+        <label class="campo">
+          <span>Valor oficial atual no documento</span>
+          <input id="pOf" maxlength="120" readonly style="background:var(--surface-2)">
+        </label>
+
+        <label class="campo">
+          <span>Fonte do valor oficial</span>
+          <input id="pFonte" maxlength="200" readonly style="background:var(--surface-2)">
+        </label>
+
+        <label class="campo">
+          <span>Valor verificado em campo</span>
+          <input id="pVal" maxlength="120" required placeholder="Ex.: 78,5% ou Operando com restrição">
+        </label>
+
+        <label class="campo forum-largo">
+          <span>Evidência técnica da vistoria / medição (como e quando foi verificado)</span>
+          <textarea id="pEv" minlength="10" maxlength="2000" required placeholder="Ex.: Vistoria realizada no dia 12/11 com medição de vazão e análise da documentação operacional..."></textarea>
+        </label>
+
+        <label class="campo forum-largo">
+          <span>Link da evidência técnica (opcional: relatório, fotos, planilha, parecer)</span>
+          <input id="pUrl" type="url" maxlength="500" placeholder="https://exemplo.pr.gov.br/relatorio.pdf">
+        </label>
+
+        <div class="forum-largo" style="display:flex;align-items:center;gap:12px">
+          <button class="btn btn-p" type="submit">Enviar para confirmação</button>
+          <span id="pMsg"></span>
+        </div>
+      </form>
+    `, "A correção fica com o selo <b>Em validação</b> até que outra instituição do fórum confirme. O valor oficial continua documentado ao lado.");
+  }
+
+  function ligarEventosProposta() {
+    const selMun = $("#pMun");
+    const selInd = $("#pInd");
+    const inpOf = $("#pOf");
+    const inpFonte = $("#pFonte");
+    const form = $("#fProp");
+
+    const preencherOficial = () => {
+      if (!selMun || !selInd) return;
+      const o = oficialDe(selMun.value, selInd.value);
+      if (inpOf) inpOf.value = o.valor;
+      if (inpFonte) inpFonte.value = o.fonte;
+      const campoRot = $("#pRotCampo");
+      if (campoRot) campoRot.hidden = selInd.value !== "outro";
+    };
+
+    if (selMun) selMun.addEventListener("change", preencherOficial);
+    if (selInd) selInd.addEventListener("change", preencherOficial);
+    preencherOficial();
+
+    if (form) {
+      form.onsubmit = e => {
+        e.preventDefault();
+        const munNome = $("#pMun").value;
+        const ind = $("#pInd").value;
+        const rot = ind === "outro" ? ($("#pRot").value.trim() || "Outro dado técnico") : INDICADORES.find(x => x[0] === ind)[1];
+        const valProposto = $("#pVal").value.trim();
+        const evidencia = $("#pEv").value.trim();
+        const url = $("#pUrl").value.trim();
+
+        const nova = {
+          id: Date.now(),
+          municipio_nome: munNome,
+          municipio_id: "4100000",
+          indicador: ind,
+          rotulo: rot,
+          valor_oficial: $("#pOf").value.trim(),
+          fonte_oficial: $("#pFonte").value.trim(),
+          valor_proposto: valProposto,
+          evidencia: evidencia,
+          evidencia_url: url || null,
+          criado_em: new Date().toISOString(),
+          status: "em_validacao",
+          instituicao_id: sessaoAtual.instituicao.id,
+          autor_nome: sessaoAtual.usuario,
+          instituicao: sessaoAtual.instituicao,
+          revisado_em: null,
+          revisor: null,
+          motivo_rejeicao: null
+        };
+
+        correcoes.unshift(nova);
+        salvar();
+        render("Proposta de correção enviada com sucesso! Ela já aparece na lista das outras instituições para confirmação.");
+      };
+    }
+  }
+
+  /* ---------- Ações de Certificação e Rejeição ---------- */
+  function ligarAcoesRevisao() {
+    $$("[data-certificar]").forEach(btn => {
+      btn.onclick = () => {
+        const id = Number(btn.getAttribute("data-certificar"));
+        const item = correcoes.find(c => c.id === id);
+        if (!item) return;
+
+        // Regra de ouro: uma instituição não pode certificar a própria proposta
+        if (item.instituicao_id === sessaoAtual.instituicao.id) {
+          alert("Regra de auditoria: Nenhuma instituição pode certificar o próprio dado. A confirmação deve ser feita por outra entidade do fórum.");
+          return;
+        }
+
+        item.status = "certificado";
+        item.revisado_em = new Date().toISOString();
+        item.revisor = sessaoAtual.instituicao;
+        salvar();
+        render(`Correção de <b>${esc(item.municipio_nome)}</b> confirmada e <b>CERTIFICADA</b> por ${esc(sessaoAtual.instituicao.sigla)}! O dado já é exibido como oficial certificado.`);
+      };
+    });
+
+    $$("[data-rejeitar]").forEach(btn => {
+      btn.onclick = () => {
+        const id = Number(btn.getAttribute("data-rejeitar"));
+        const item = correcoes.find(c => c.id === id);
+        if (!item) return;
+
+        if (item.instituicao_id === sessaoAtual.instituicao.id) {
+          alert("Você não pode rejeitar sua própria proposta aqui; use a exclusão caso queira cancelar.");
+          return;
+        }
+
+        const motivo = prompt("Informe o motivo técnico da não confirmação / rejeição (será registrado na auditoria do fórum):");
+        if (motivo === null) return; // cancelou
+
+        item.status = "rejeitado";
+        item.revisado_em = new Date().toISOString();
+        item.revisor = sessaoAtual.instituicao;
+        item.motivo_rejeicao = motivo.trim() || "Inconformidade com as medições de campo.";
+        salvar();
+        render(`Proposta de ${esc(item.municipio_nome)} rejeitada e arquivada no histórico de auditoria.`);
+      };
     });
   }
-  iniciar();
 
-  return { abrir: () => { iniciar(); render(); } };
+  /* ---------- Renderização Principal ---------- */
+  function render(msgSucesso) {
+    const container = el();
+    if (!container) return;
+
+    const instAtual = sessaoAtual.instituicao;
+    const ehAdmin = instAtual.papel === "admin";
+
+    // Filtros de negócio:
+    // 1. Aguardando confirmação (propostas de OUTRAS instituições que precisam da validação desta)
+    const aguardando = correcoes.filter(c => c.status === "em_validacao" && (ehAdmin || c.instituicao_id !== instAtual.id));
+
+    // 2. Propostas da PRÓPRIA instituição que aguardam outro par
+    const minhas = correcoes.filter(c => c.status === "em_validacao" && c.instituicao_id === instAtual.id);
+
+    // 3. Revisadas (certificadas ou rejeitadas)
+    const certificadas = correcoes.filter(c => c.status === "certificado");
+    const rejeitadas = correcoes.filter(c => c.status === "rejeitado");
+    const revisadas = certificadas.concat(rejeitadas).sort((a, b) => String(b.revisado_em || "").localeCompare(String(a.revisado_em || "")));
+
+    container.innerHTML = `
+      <!-- Topo com dados da sessão e seletor rápido de instituição -->
+      <div class="forum-topo">
+        <div>
+          <span>Conectado como: <b>${esc(sessaoAtual.usuario)}</b></span> · 
+          <span class="pill ok">${esc(instAtual.sigla)}</span>
+          <span class="letra-miuda">(${esc(instAtual.nome)})</span>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-s" type="button" id="btnAlternarInst">Alternar Instituição</button>
+        </div>
+      </div>
+
+      <!-- Caixa para simular / alternar instituição com 1 clique -->
+      <div class="demo-inst-box" id="boxAlternar" hidden>
+        <b>Selecione qual instituição do Fórum você deseja representar agora:</b>
+        <p class="letra-miuda" style="margin:4px 0 8px">Permite testar na prática a certificação cruzada (ex.: proponha por uma entidade e confirme por outra).</p>
+        <div class="demo-inst-grid">
+          ${INSTITUICOES.map(inst => `
+            <button class="demo-inst-btn ${inst.id === instAtual.id ? "ativa" : ""}" type="button" data-inst-id="${inst.id}">
+              <b>${esc(inst.sigla)}</b><br><small style="font-weight:400">${esc(inst.papel === "admin" ? "Regulador" : "Membro")}</small>
+            </button>
+          `).join("")}
+        </div>
+      </div>
+
+      ${msgSucesso ? `<div class="nota-dados" style="margin:14px 0;background:var(--ok-bg);color:var(--ok);border-color:var(--ok)">${msgSucesso}</div>` : ""}
+
+      <!-- Card 1: Formulário para propor correção -->
+      ${renderFormProposta()}
+
+      <!-- Card 2: Aguardando sua confirmação (correções de OUTRAS instituições) -->
+      ${card(
+        `Aguardando sua confirmação técnica <span class="cnt">${aguardando.length}</span>`,
+        aguardando.length
+          ? aguardando.map(c => linhaCorrecao(c, true)).join("")
+          : aviso("Nenhuma correção de outra instituição aguardando confirmação no momento."),
+        ehAdmin
+          ? "Como órgão regulador/coordenação (AGEPAR), você pode validar qualquer proposta."
+          : `Aparecem apenas dados propostos por <b>outras instituições</b>: ninguém certifica o próprio dado.`
+      )}
+
+      <!-- Card 3: Suas propostas em validação -->
+      ${card(
+        `Suas propostas aguardando confirmação externa <span class="cnt">${minhas.length}</span>`,
+        minhas.length
+          ? minhas.map(c => linhaCorrecao(c, false)).join("")
+          : aviso("Você não possui propostas pendentes de validação."),
+        "Ficam visíveis até que outra instituição do Fórum realize a confirmação em campo."
+      )}
+
+      <!-- Card 4: Dados certificados e revisados pelo fórum -->
+      ${card(
+        `Dados Certificados e Histórico Recente <span class="cnt">${revisadas.length}</span>`,
+        revisadas.length
+          ? revisadas.map(c => linhaCorrecao(c, false)).join("")
+          : aviso("Nenhum dado auditado ou certificado recentemente."),
+        "Dados com selo <b>Certificado</b> são os únicos validados que substituem o dado preliminar no painel público."
+      )}
+    `;
+
+    // Eventos de alternância rápida de instituição
+    const btnAlternar = $("#btnAlternarInst");
+    const boxAlternar = $("#boxAlternar");
+    if (btnAlternar && boxAlternar) {
+      btnAlternar.onclick = () => {
+        boxAlternar.hidden = !boxAlternar.hidden;
+      };
+    }
+
+    $$(".demo-inst-btn").forEach(btn => {
+      btn.onclick = () => {
+        const id = Number(btn.getAttribute("data-inst-id"));
+        const novaInst = INSTITUICOES.find(i => i.id === id);
+        if (novaInst) {
+          sessaoAtual = {
+            usuario: `Técnico(a) ${novaInst.sigla}`,
+            instituicao: novaInst
+          };
+          try {
+            localStorage.setItem(CHAVE_SESSAO, JSON.stringify(sessaoAtual));
+          } catch (e) {}
+          render(`Instituição ativa alterada para <b>${esc(novaInst.sigla)}</b> (${esc(novaInst.nome)}).`);
+        }
+      };
+    });
+
+    ligarEventosProposta();
+    ligarAcoesRevisao();
+  }
+
+  return {
+    abrir: function() {
+      render();
+    },
+    obterCertificadasPorMunicipio: function(nomeMunicipio) {
+      return correcoes.filter(c => c.status === "certificado" && c.municipio_nome.toLowerCase() === String(nomeMunicipio).toLowerCase());
+    }
+  };
 })();

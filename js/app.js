@@ -172,6 +172,11 @@ window.OPS_APP = {
       this.renderGraficosMetas();
     }
 
+    // Se abrir fórum, renderizar módulo
+    if (nomeAba === "forum" && window.OPS_FORUM) {
+      window.OPS_FORUM.abrir();
+    }
+
     window.history.replaceState(null, null, "#" + nomeAba);
     window.scrollTo({ top: 0, behavior: "smooth" });
   },
@@ -293,9 +298,37 @@ window.OPS_APP = {
       }
     ];
 
+    // Verificar se há dados certificados pelo Fórum de Saneamento para este município
+    const certs = window.OPS_FORUM ? window.OPS_FORUM.obterCertificadasPorMunicipio(m.nome) : [];
+    if (certs.length) {
+      certs.forEach(cert => {
+        if (cert.indicador === "perdas") {
+          const cardPerdas = cards.find(c => c.rot.includes("Perdas"));
+          if (cardPerdas) {
+            cardPerdas.val = String(cert.valor_proposto).replace("%", "");
+            cardPerdas.met = `Oficial: ${perdas.toFixed(1)}% · Certificado por ${cert.revisor ? cert.revisor.sigla : "Fórum"}`;
+            cardPerdas.fonte = `Fórum (${cert.instituicao ? cert.instituicao.sigla : ""} / ${cert.revisor ? cert.revisor.sigla : ""})`;
+            cardPerdas.selo = "certificado";
+          }
+        }
+        if (cert.indicador === "esgotoTotal") {
+          const cardEsgoto = cards.find(c => c.rot === "Esgotamento Total");
+          if (cardEsgoto) {
+            cardEsgoto.val = String(cert.valor_proposto).replace("%", "");
+            cardEsgoto.met = `Oficial: ${esgotoTot.toFixed(1)}% · Certificado por ${cert.revisor ? cert.revisor.sigla : "Fórum"}`;
+            cardEsgoto.fonte = `Fórum (${cert.instituicao ? cert.instituicao.sigla : ""} / ${cert.revisor ? cert.revisor.sigla : ""})`;
+            cardEsgoto.selo = "certificado";
+          }
+        }
+      });
+    }
+
     kpisDiv.innerHTML = cards.map(c => `
       <div class="kpi card">
-        <span class="rot">${c.rot}</span>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span class="rot">${c.rot}</span>
+          ${c.selo === "certificado" ? `<span class="pill ok" style="font-size:10px;padding:1px 6px">✓ Certificado</span>` : ""}
+        </div>
         <div class="val" style="color:${c.cor}">${c.val}<span class="un">${c.un}</span></div>
         <div class="met">${c.met}</div>
         <div class="fonte">

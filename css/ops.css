@@ -343,6 +343,36 @@ fieldset.campo legend{display:block; font-size:var(--fs-sm); font-weight:500; co
 .passo h4{font-size:var(--fs-md); margin-bottom:4px}
 .passo p{margin:0; font-size:var(--fs-sm); color:var(--ink-2)}
 
+/* ---------- área do fórum permanente ---------- */
+.letra-miuda{font-size:var(--fs-xs); color:var(--ink-3)}
+.erro{color:var(--trav); font-size:var(--fs-xs); margin-top:6px}
+.dl{display:grid; grid-template-columns:auto 1fr; gap:4px 12px; margin:8px 0 0; font-size:var(--fs-xs)}
+.dl dt{color:var(--ink-3); font-weight:500}
+.dl dd{margin:0; font-weight:500; color:var(--ink)}
+.dl .sub{color:var(--ink-3); font-size:11px}
+
+.forum-topo{display:flex; justify-content:space-between; align-items:center; gap:12px; margin-bottom:16px; font-size:var(--fs-sm); background:var(--surface); padding:10px 16px; border:1px solid var(--line); border-radius:var(--r)}
+.forum-card{margin-bottom:16px; max-width:980px}
+.forum-card h3{display:flex; align-items:center; font-size:var(--fs-md); margin-bottom:6px}
+.forum-card h3 .cnt{display:inline-block; font-size:12px; font-weight:600; color:var(--ink-3); background:var(--surface-3); padding:1px 7px; border-radius:10px; margin-left:8px}
+.forum-card>.letra-miuda{margin:4px 0 14px}
+.forum-form{max-width:100%}
+.forum-form .link{margin-top:10px}
+.forum-grade{display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 16px}
+.forum-largo{grid-column:1 / -1}
+.forum-item{border-top:1px solid var(--line-2); padding:14px 0}
+.forum-item:first-of-type{border-top:0}
+.forum-item-cab{display:flex; flex-wrap:wrap; align-items:center; gap:8px; font-size:var(--fs-sm); margin-bottom:8px}
+.forum-item p{margin:0 0 8px; font-size:var(--fs-sm); color:var(--ink-2)}
+.forum-acoes{display:flex; gap:8px; margin-top:12px; flex-wrap:wrap}
+
+.demo-inst-box{background:var(--surface-2); border:1px solid var(--line-2); border-radius:var(--r); padding:14px; margin-top:16px}
+.demo-inst-grid{display:grid; grid-template-columns:repeat(auto-fill, minmax(130px, 1fr)); gap:8px; margin-top:8px}
+.demo-inst-btn{padding:8px 10px; font-size:12px; font-weight:600; background:var(--surface); border:1px solid var(--line); border-radius:var(--r); color:var(--ink-2); cursor:pointer; text-align:center; transition:all .15s ease}
+.demo-inst-btn:hover{border-color:var(--brand); color:var(--brand); background:var(--brand-soft)}
+.demo-inst-btn.ativa{border-color:var(--brand); background:var(--brand); color:#fff}
+@media (max-width:760px){.forum-grade{grid-template-columns:1fr}}
+
 /* ---------- rodapé ---------- */
 .rodape{background:var(--surface); border-top:1px solid var(--line); padding:32px 0 40px; margin-top:48px; font-size:var(--fs-xs); color:var(--ink-3)}
 .rod-in{display:flex; justify-content:space-between; align-items:flex-start; gap:24px; flex-wrap:wrap}
