@@ -190,6 +190,96 @@ window.OPS_FORUM = (() => {
     }
   }
 
+  /* ---------- TELA 1.1: DEFINIÇÃO DE SENHA (Após clique em link de convite por e-mail) ---------- */
+  function renderTelaDefinirSenha(emailPreenchido, msg, erro) {
+    const c = el();
+    if (!c) return;
+
+    c.innerHTML = `
+      <div class="card pad" style="max-width:540px;margin:24px auto;box-shadow:var(--s2);border-top:4px solid var(--cor-p)">
+        <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+          <span class="selo-verificado" style="background:#0284c7;color:#fff;font-weight:700">Ativação de Conta</span>
+        </div>
+        <h2 style="margin:0 0 8px 0;font-size:22px">Criar Senha de Acesso ao Fórum</h2>
+        <p class="letra-miuda" style="margin-bottom:20px;line-height:1.5">
+          Você foi credenciado como membro técnico do <b>Fórum Permanente de Saneamento do Paraná</b>.
+          Defina sua senha pessoal para ativar sua conta e acessar o painel de validações.
+        </p>
+
+        <form id="fDefinirSenha" novalidate>
+          <label class="campo">
+            <span>E-mail institucional</span>
+            <input type="email" id="fDefEmail" value="${esc(emailPreenchido || "")}" disabled style="opacity:0.8;cursor:not-allowed">
+          </label>
+          <label class="campo">
+            <span>Nova senha de acesso</span>
+            <input type="password" id="fNovaSenha" placeholder="Mínimo 6 caracteres" required minlength="6">
+          </label>
+          <label class="campo">
+            <span>Confirmar nova senha</span>
+            <input type="password" id="fConfirmaSenha" placeholder="Repita a nova senha" required minlength="6">
+          </label>
+          
+          <button class="btn btn-p btn-cheio" type="submit" id="btnSalvarSenha" style="margin-top:12px">
+            Ativar Conta e Entrar
+          </button>
+
+          <div id="fMsgDefinirSenha" style="margin-top:12px">
+            ${msg ? aviso(msg, erro) : ""}
+          </div>
+        </form>
+      </div>
+    `;
+
+    const form = $("#fDefinirSenha");
+    const btnSalvar = $("#btnSalvarSenha");
+    const msgDiv = $("#fMsgDefinirSenha");
+
+    if (form) {
+      form.onsubmit = async e => {
+        e.preventDefault();
+        const senha1 = $("#fNovaSenha").value;
+        const senha2 = $("#fConfirmaSenha").value;
+
+        if (!senha1 || senha1.length < 6) {
+          msgDiv.innerHTML = aviso("A senha deve ter pelo menos 6 caracteres.", true);
+          return;
+        }
+        if (senha1 !== senha2) {
+          msgDiv.innerHTML = aviso("As senhas não coincidem. Digite a mesma senha nos dois campos.", true);
+          return;
+        }
+
+        btnSalvar.disabled = true;
+        btnSalvar.textContent = "Salvando senha...";
+        msgDiv.innerHTML = "";
+
+        try {
+          if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+            await window.OPS_SERVICO.definirSenha(senha1);
+            const sess = await window.OPS_SERVICO.obterSessao();
+            const email = (sess && sess.user && sess.user.email) || emailPreenchido || "";
+            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+            sessaoAtual = {
+              usuario: email,
+              instituicao: instDetectada
+            };
+            if (window.history && window.history.replaceState) {
+              window.history.replaceState(null, null, window.location.pathname + "#forum");
+            }
+            renderPainelMembro(`Conta ativada com sucesso como <b>${esc(sessaoAtual.usuario)}</b> (${esc(sessaoAtual.instituicao.sigla)}).`);
+          } else {
+            throw new Error("Serviço de autenticação não configurado.");
+          }
+        } catch (er) {
+          btnSalvar.disabled = false;
+          btnSalvar.textContent = "Ativar Conta e Entrar";
+          msgDiv.innerHTML = aviso("Erro ao definir senha: " + er.message, true);
+        }
+      };
+    }
+  }
+
   /* ---------- TELA 2: PAINEL DO MEMBRO (Exibido SOMENTE após autenticação válida) ---------- */
   function oficialDe(nomeMunicipio, ind) {
     const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
@@ -513,31 +603,42 @@ window.OPS_FORUM = (() => {
 
   /* ---------- Ponto de Entrada ---------- */
   function verificarSessaoERenderizar() {
-    // Se o usuário não tem sessão ativa, SEMPRE exibe a tela de login
-    if (!sessaoAtual) {
-      // Verificar se há sessão ativa salva no Supabase (ex: recarregou a página)
-      if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
-        window.OPS_SERVICO.obterSessao().then(session => {
-          if (session && session.user) {
-            const email = session.user.email || "";
-            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
-            sessaoAtual = {
-              usuario: email,
-              instituicao: instDetectada
-            };
-            renderPainelMembro();
-          } else {
-            renderTelaLogin();
+    const hash = window.location.hash || "";
+    const isConviteOuRecuperacao = hash.includes("type=invite") || hash.includes("type=recovery") || hash.includes("type=signup");
+
+    if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+      window.OPS_SERVICO.obterSessao().then(session => {
+        if (session && session.user) {
+          const email = session.user.email || "";
+          if (isConviteOuRecuperacao) {
+            renderTelaDefinirSenha(email);
+            return;
           }
-        }).catch(() => {
+          const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+          sessaoAtual = {
+            usuario: email,
+            instituicao: instDetectada
+          };
+          renderPainelMembro();
+        } else {
           renderTelaLogin();
-        });
-      } else {
+        }
+      }).catch(() => {
         renderTelaLogin();
-      }
+      });
     } else {
-      renderPainelMembro();
+      renderTelaLogin();
     }
+  }
+
+  // Monitorar se o usuário clicou em link de recuperação/convite enquanto a página já estava aberta
+  if (window.OPS_SERVICO && window.OPS_SERVICO.isConfigurado()) {
+    window.OPS_SERVICO.aoMudarSessao((evento, session) => {
+      if (evento === "PASSWORD_RECOVERY" || (evento === "SIGNED_IN" && (window.location.hash || "").includes("type=invite"))) {
+        const email = (session && session.user && session.user.email) || "";
+        renderTelaDefinirSenha(email);
+      }
+    });
   }
 
   return {

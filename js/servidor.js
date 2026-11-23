@@ -79,6 +79,14 @@ window.OPS_SERVICO = (function() {
       }
     },
 
+    definirSenha: async function(novaSenha) {
+      const sb = obterCliente();
+      if (!sb) throw new Error("A conexão com o servidor do Observatório (Supabase) não pôde ser inicializada.");
+      const { data, error } = await sb.auth.updateUser({ password: String(novaSenha) });
+      if (error) throw error;
+      return data;
+    },
+
     recuperarSenha: async function(email) {
       const sb = obterCliente();
       if (!sb) throw new Error("A conexão com o servidor do Observatório (Supabase) não pôde ser inicializada.");
