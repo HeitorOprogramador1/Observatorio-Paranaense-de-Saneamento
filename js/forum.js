@@ -149,23 +149,61 @@ window.OPS_FORUM = (() => {
   /* ---------- Obter valor oficial do município ---------- */
   function oficialDe(nomeMunicipio, ind) {
     const todos = (window.OPS_APP && window.OPS_APP.municipios) || [];
-    const m = todos.find(item => item.nome.toLowerCase() === nomeMunicipio.toLowerCase()) || window.OPS_APP.municipioAtual;
+    const m = todos.find(item => item.nome.toLowerCase() === String(nomeMunicipio || "").toLowerCase()) || window.OPS_APP.municipioAtual;
     if (!m) return { valor: "", fonte: "" };
 
     const mapaValores = {
-      aguaUrbana: { v: m.atendimento_agua_urbano ? m.atendimento_agua_urbano.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
-      aguaTotal: { v: m.atendimento_agua_total ? m.atendimento_agua_total.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
-      esgotoUrbano: { v: m.atendimento_esgoto_urbano ? m.atendimento_esgoto_urbano.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
-      esgotoTotal: { v: m.atendimento_esgoto_total ? m.atendimento_esgoto_total.toFixed(1) + "%" : "—", f: "PRSB Paraná (2023)" },
-      perdas: { v: m.perdas_distribuicao ? m.perdas_distribuicao.toFixed(1) + "%" : "—", f: "SNIS / Sanepar" },
-      tratamentoEsgoto: { v: m.tratamento_esgoto ? m.tratamento_esgoto.toFixed(1) + "%" : "100.0%", f: "Sanepar / AGEPAR" },
-      reservacao: { v: "14.200 m³", f: "PRSB / Cadastro Concessionária" },
-      hidrometros: { v: "98.5%", f: "AGEPAR / Fiscalização" },
-      drenagem: { v: "Normatizado", f: "PRSB Cap. 8 (DMAPU)" },
-      residuos: { v: "100.0%", f: "PERS-PR / Aterro Regulamentado" }
+      aguaUrbana: {
+        valor: m.atendimento_agua_urbano != null ? m.atendimento_agua_urbano.toFixed(1) + "%" : "100.0%",
+        fonte: "PRSB Paraná (2023) · Caderno Municipal"
+      },
+      aguaTotal: {
+        valor: m.atendimento_agua_total != null ? m.atendimento_agua_total.toFixed(1) + "%" : "100.0%",
+        fonte: "PRSB Paraná (2023) · SECID / Sanepar"
+      },
+      esgotoUrbano: {
+        valor: m.atendimento_esgoto_urbano != null ? m.atendimento_esgoto_urbano.toFixed(1) + "%" : "—",
+        fonte: "PRSB Paraná (2023) · Caderno Municipal"
+      },
+      esgotoTotal: {
+        valor: m.atendimento_esgoto_total != null ? m.atendimento_esgoto_total.toFixed(1) + "%" : "—",
+        fonte: "PRSB Paraná (2023) · Diagnóstico"
+      },
+      perdas: {
+        valor: m.perdas_distribuicao != null ? m.perdas_distribuicao.toFixed(1) + "%" : "—",
+        fonte: "SNIS / Sanepar (2023)"
+      },
+      tratamentoEsgoto: {
+        valor: m.tratamento_esgoto != null ? m.tratamento_esgoto.toFixed(1) + "%" : "100.0%",
+        fonte: "Sanepar / AGEPAR (2023)"
+      },
+      reservacao: {
+        valor: "14.200 m³",
+        fonte: "PRSB / Cadastro Concessionária"
+      },
+      hidrometros: {
+        valor: "98.5%",
+        fonte: "AGEPAR / Fiscalização"
+      },
+      drenagem: {
+        valor: "Normatizado",
+        fonte: "PRSB Cap. 8 (DMAPU) · IAT"
+      },
+      residuos: {
+        valor: "100.0%",
+        fonte: "PERS-PR / Aterro Regulamentado"
+      },
+      outro: {
+        valor: "",
+        fonte: "Documento oficial / Contrato"
+      }
     };
 
-    return mapaValores[ind] || { valor: "", fonte: "" };
+    const res = mapaValores[ind] || { valor: "", fonte: "" };
+    return {
+      valor: res.valor || "",
+      fonte: res.fonte || ""
+    };
   }
 
   /* ---------- Linha de exibição de proposta ---------- */
@@ -272,8 +310,8 @@ window.OPS_FORUM = (() => {
     const preencherOficial = () => {
       if (!selMun || !selInd) return;
       const o = oficialDe(selMun.value, selInd.value);
-      if (inpOf) inpOf.value = o.valor;
-      if (inpFonte) inpFonte.value = o.fonte;
+      if (inpOf) inpOf.value = o.valor || "";
+      if (inpFonte) inpFonte.value = o.fonte || "";
       const campoRot = $("#pRotCampo");
       if (campoRot) campoRot.hidden = selInd.value !== "outro";
     };
