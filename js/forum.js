@@ -23,6 +23,7 @@ window.OPS_FORUM = (() => {
   ];
 
   const INSTITUICOES = [
+    { id: 0, sigla: "Coordenação Geral", nome: "Coordenação Técnica do Fórum Permanente", papel: "admin", dominio: "geral" },
     { id: 1, sigla: "AGEPAR", nome: "Agência Reguladora de Serviços Públicos Delegados do PR", papel: "admin", dominio: "agepar.pr.gov.br" },
     { id: 2, sigla: "SEDEST / SECID", nome: "Secretaria de Desenvolvimento Sustentável e Cidades (PR)", papel: "membro", dominio: "sedest.pr.gov.br" },
     { id: 3, sigla: "IAT", nome: "Instituto Água e Terra do Paraná", papel: "membro", dominio: "iat.pr.gov.br" },
@@ -31,6 +32,14 @@ window.OPS_FORUM = (() => {
     { id: 6, sigla: "AMP", nome: "Associação dos Municípios do Paraná", papel: "membro", dominio: "ampr.org.br" },
     { id: 7, sigla: "Sanepar", nome: "Companhia de Saneamento do Paraná (Concessionária)", papel: "membro", dominio: "sanepar.com.br" }
   ];
+
+  function obterInstituicaoPorEmail(email) {
+    const e = String(email || "").trim().toLowerCase();
+    if (e === "heitormuzzolon904@gmail.com" || e.startsWith("admin@")) {
+      return INSTITUICOES[0]; // Coordenação Geral (Admin Master)
+    }
+    return INSTITUICOES.find(i => i.dominio !== "geral" && e.includes(i.dominio)) || INSTITUICOES[1];
+  }
 
   const CHAVE_STORAGE = "ops_pr_forum_correcoes";
 
@@ -148,7 +157,7 @@ window.OPS_FORUM = (() => {
             // Tentativa de login no Supabase oficial
             const res = await window.OPS_SERVICO.entrar(email, senha);
             const user = res.user || (res.session && res.session.user);
-            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+            const instDetectada = obterInstituicaoPorEmail(email);
 
             sessaoAtual = {
               usuario: user.email,
@@ -259,7 +268,7 @@ window.OPS_FORUM = (() => {
             await window.OPS_SERVICO.definirSenha(senha1);
             const sess = await window.OPS_SERVICO.obterSessao();
             const email = (sess && sess.user && sess.user.email) || emailPreenchido || "";
-            const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+            const instDetectada = obterInstituicaoPorEmail(email);
             sessaoAtual = {
               usuario: email,
               instituicao: instDetectada
@@ -626,7 +635,7 @@ window.OPS_FORUM = (() => {
             renderTelaDefinirSenha(email);
             return;
           }
-          const instDetectada = INSTITUICOES.find(i => email.includes(i.dominio)) || INSTITUICOES[0];
+          const instDetectada = obterInstituicaoPorEmail(email);
           sessaoAtual = {
             usuario: email,
             instituicao: instDetectada
