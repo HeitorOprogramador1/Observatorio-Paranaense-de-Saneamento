@@ -233,12 +233,41 @@ th.n,td.n{text-align:right}
 
 /* ---------- participação / relatos ---------- */
 .campo{display:block; margin-bottom:14px}
+fieldset.campo{border:0; padding:0; margin:0 0 14px 0}
+fieldset.campo legend{display:block; font-size:var(--fs-sm); font-weight:500; color:var(--ink-2); margin-bottom:8px; padding:0}
 .campo span{display:block; font-size:var(--fs-sm); font-weight:500; color:var(--ink-2); margin-bottom:4px}
 .campo input,.campo textarea,.campo select{width:100%; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); padding:8px 12px; font-size:var(--fs-md); color:var(--ink)}
 .campo textarea{min-height:90px; resize:vertical}
 .tipos{display:grid; grid-template-columns:repeat(2,1fr); gap:8px}
-.tipo-btn{padding:8px 12px; border:1px solid var(--line); border-radius:var(--r); background:var(--surface); font-size:var(--fs-xs); font-weight:600; text-align:left}
-.tipo-btn.sel{border-color:var(--brand); background:var(--brand-soft); color:var(--brand)}
+.tipo, .tipo-btn{
+  min-height:38px;
+  padding:8px 12px;
+  border:1px solid var(--line);
+  border-radius:var(--r);
+  background:var(--surface);
+  font-family:inherit;
+  font-size:var(--fs-xs);
+  font-weight:500;
+  color:var(--ink-2);
+  text-align:left;
+  cursor:pointer;
+  transition:all .15s ease;
+  display:flex;
+  align-items:center;
+  line-height:1.3;
+}
+.tipo:hover, .tipo-btn:hover{
+  border-color:var(--brand);
+  color:var(--ink);
+  background:var(--surface-2, rgba(14, 165, 233, 0.05));
+}
+.tipo[aria-pressed="true"], .tipo.sel, .tipo-btn.sel{
+  border-color:var(--brand);
+  background:var(--brand-soft);
+  color:var(--brand);
+  font-weight:600;
+  box-shadow:0 0 0 1px var(--brand);
+}
 .passo{display:flex; gap:16px; margin-bottom:16px; padding-bottom:16px; border-bottom:1px solid var(--line-2)}
 .passo .n{width:28px; height:28px; border-radius:50%; background:var(--brand); color:#fff; display:grid; place-items:center; font-weight:700; font-size:var(--fs-sm); flex:none}
 .passo h4{font-size:var(--fs-md); margin-bottom:4px}

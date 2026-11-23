@@ -669,11 +669,25 @@ window.OPS_APP = {
       });
     }
 
-    // Tipos de relato interativos
+    // Tipos de relato interativos com feedback dinâmico
+    const sugestoesPlaceholder = {
+      "Falta d'água recorrente": "Ex.: No bairro X, estamos sem abastecimento de água regular há dias consecutivos...",
+      "Água com cor ou cheiro": "Ex.: A água da torneira está apresentando coloração turva ou cheiro forte há 3 dias...",
+      "Vazamento de água na via": "Ex.: Há um cano rompido na Rua Tal, altura do número 120, jorrando água potável na rua...",
+      "Esgoto a céu aberto / extravasamento": "Ex.: Vazamento de esgoto a céu aberto na esquina da Rua A com B, causando mau cheiro...",
+      "Obra atrasada ou paralisada": "Ex.: A obra de ampliação da rede de saneamento na Avenida Principal está parada há semanas...",
+      "Bueiro entupido / alagamento": "Ex.: Bueiro e galeria pluvial totalmente obstruídos por sedimentos, causando alagamento..."
+    };
+
     $$(".tipos .tipo").forEach(btn => {
       btn.addEventListener("click", () => {
         $$(".tipos .tipo").forEach(b => b.setAttribute("aria-pressed", "false"));
         btn.setAttribute("aria-pressed", "true");
+        const tipoTexto = btn.textContent.trim();
+        const textarea = $("#relTexto");
+        if (textarea && sugestoesPlaceholder[tipoTexto]) {
+          textarea.placeholder = sugestoesPlaceholder[tipoTexto];
+        }
       });
     });
 

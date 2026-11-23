@@ -156,51 +156,176 @@ window.OPS_MAPA = {
     this.atualizarRodape();
   },
 
+  filtrarGeoPR: function(lat, lng, nomeMun) {
+    const norm = str => String(str || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const munNorm = norm(nomeMun);
+    const distGraus = (lat1, lng1, lat2, lng2) => Math.hypot(lat1 - lat2, lng1 - lng2);
+
+    const etas = [];
+    if (window.GEOPR_ETA && Array.isArray(window.GEOPR_ETA.features)) {
+      window.GEOPR_ETA.features.forEach((f, idx) => {
+        const c = f.geometry && f.geometry.coordinates;
+        if (!c) return;
+        const pLng = c[0], pLat = c[1];
+        const sis = norm(f.properties && f.properties.sistema);
+        const man = norm(f.properties && f.properties.manancial);
+        if (sis.includes(munNorm) || man.includes(munNorm) || distGraus(pLat, pLng, lat, lng) < 0.15) {
+          etas.push({
+            id: f.properties.sigla ? f.properties.sigla.replace(/[()]/g, "").trim() : `ETA-${idx + 1}`,
+            nome: f.properties.sistema || `ETA ${nomeMun}`,
+            sis: "SAA",
+            tipo: "Estação de Tratamento de Água (ETA)",
+            manancial: f.properties.manancial || "Manancial Superficial",
+            situacao: f.properties.situacao || "Operante",
+            lat: pLat,
+            lng: pLng,
+            forma: "quadrado",
+            cor: "#33FF00",
+            origem: "GeoPR / IAT"
+          });
+        }
+      });
+    }
+
+    const efluentes = [];
+    if (window.GEOPR_EFLUENTES && Array.isArray(window.GEOPR_EFLUENTES.features)) {
+      window.GEOPR_EFLUENTES.features.forEach((f, idx) => {
+        const c = f.geometry && f.geometry.coordinates;
+        if (!c) return;
+        const pLng = c[0], pLat = c[1];
+        const m = norm(f.properties && f.properties.municipio);
+        if (m === munNorm || distGraus(pLat, pLng, lat, lng) < 0.12) {
+          const isSanepar = (f.properties.usuario || "").toUpperCase().includes("SANEAMENTO") || (f.properties.uso || "").toLowerCase() === "saneamento";
+          efluentes.push({
+            id: isSanepar ? `ETE-${idx + 1}` : `OUT-${idx + 1}`,
+            nome: f.properties.usuario || `Lançamento ${f.properties.rio || "Corpo Receptor"}`,
+            sis: "SES",
+            tipo: isSanepar ? "ETE / Lançamento de Efluente Sanepar" : `Outorga de Efluente (${f.properties.uso || "Indústria"})`,
+            rio: f.properties.rio || "Corpo Hídrico Receptor",
+            bacia: f.properties.bacia || "Bacia Hidrográfica",
+            vazao: f.properties.vazao_m3h ? `${f.properties.vazao_m3h} m³/h` : "—",
+            portaria: f.properties.portaria || "Outorga IAT",
+            lat: pLat,
+            lng: pLng,
+            forma: isSanepar ? "quadrado" : "losango",
+            cor: isSanepar ? "#FF0000" : "#FFA800",
+            origem: "Outorga IAT / GeoPR"
+          });
+        }
+      });
+    }
+
+    const mananciais = [];
+    if (window.GEOPR_MANANCIAIS && Array.isArray(window.GEOPR_MANANCIAIS.features)) {
+      window.GEOPR_MANANCIAIS.features.forEach(f => {
+        const m = norm(f.properties && f.properties.municipio);
+        if (m === munNorm || (f.properties && norm(f.properties.manancial).includes(munNorm))) {
+          mananciais.push(f);
+        }
+      });
+    }
+
+    return { etas, efluentes, mananciais };
+  },
+
   desenharAtivos: function() {
     if (!this.layerGroup || !this.mapa) return;
     this.layerGroup.clearLayers();
 
     const lat = this.municipioAtual.latitude || -25.4284;
     const lng = this.municipioAtual.longitude || -49.2733;
+    const nomeMun = this.municipioAtual.nome;
 
-    // Unidades técnicas da infraestrutura de saneamento
-    const ativos = [
-      { id: "ETE-01", nome: `ETE Central ${this.municipioAtual.nome}`, sis: "SES", tipo: "Estação de Tratamento de Esgoto (ETE)", dlat: -0.010, dlng: -0.015, forma: "quadrado", cor: "#FF0000" },
-      { id: "EEE-01", nome: `EEE Bacia Norte`, sis: "SES", tipo: "Estação Elevatória de Esgoto", dlat: 0.014, dlng: -0.008, forma: "triangulo", cor: "#A600FF" },
-      { id: "EEE-02", nome: `EEE Vale Sul`, sis: "SES", tipo: "Estação Elevatória de Esgoto", dlat: -0.015, dlng: 0.012, forma: "triangulo", cor: "#FF0000" },
-      { id: "LAN-01", nome: `Ponto de Lançamento de Efluente`, sis: "SES", tipo: "Emissário / Corpo Receptor", dlat: -0.020, dlng: -0.025, forma: "losango", cor: "#FFA800" },
-      { id: "ETA-01", nome: `ETA Principal Sanepar`, sis: "SAA", tipo: "Estação de Tratamento de Água (ETA)", dlat: 0.016, dlng: 0.020, forma: "quadrado", cor: "#33FF00" },
-      { id: "CAP-01", nome: `Captação Superficial IAT`, sis: "SAA", tipo: "Captação de Manancial", dlat: 0.024, dlng: 0.028, forma: "pentagono", cor: "#0000FF" },
-      { id: "RES-01", nome: `Reservatório de Distribuição`, sis: "SAA", tipo: "Reservatório de Água Potável", dlat: 0.004, dlng: 0.006, forma: "circulo", cor: "#0000FF" }
-    ];
+    const geo = this.filtrarGeoPR(lat, lng, nomeMun);
 
-    ativos.forEach(a => {
-      // Filtrar conforme chips ativos
-      if (a.sis === "SES" && !this.camadasAtivas.esgoto) return;
-      if (a.sis === "SAA" && !this.camadasAtivas.agua) return;
+    let ativosSES = [];
+    let ativosSAA = [];
 
-      const pLat = lat + a.dlat;
-      const pLng = lng + a.dlng;
+    // Priorizar unidades reais do GeoPR se existirem no município
+    if (geo.efluentes.length > 0) {
+      ativosSES = geo.efluentes;
+    } else {
+      ativosSES = [
+        { id: "ETE-01", nome: `ETE Central ${nomeMun}`, sis: "SES", tipo: "Estação de Tratamento de Esgoto (ETE)", lat: lat - 0.010, lng: lng - 0.015, forma: "quadrado", cor: "#FF0000", origem: "PRSB Concepção" },
+        { id: "EEE-01", nome: `EEE Bacia Norte`, sis: "SES", tipo: "Estação Elevatória de Esgoto", lat: lat + 0.014, lng: lng - 0.008, forma: "triangulo", cor: "#A600FF", origem: "PRSB Concepção" },
+        { id: "EEE-02", nome: `EEE Vale Sul`, sis: "SES", tipo: "Estação Elevatória de Esgoto", lat: lat - 0.015, lng: lng + 0.012, forma: "triangulo", cor: "#FF0000", origem: "PRSB Concepção" },
+        { id: "LAN-01", nome: `Ponto de Lançamento de Efluente`, sis: "SES", tipo: "Emissário / Corpo Receptor", lat: lat - 0.020, lng: lng - 0.025, forma: "losango", cor: "#FFA800", origem: "PRSB Concepção" }
+      ];
+    }
 
+    if (geo.etas.length > 0) {
+      ativosSAA = geo.etas;
+      // Adicionar reservatório de apoio
+      ativosSAA.push({ id: "RES-01", nome: `Reservatório Central Sanepar`, sis: "SAA", tipo: "Reservatório de Água Potável", lat: lat + 0.004, lng: lng + 0.006, forma: "circulo", cor: "#0000FF", origem: "Sanepar SAA" });
+    } else {
+      ativosSAA = [
+        { id: "ETA-01", nome: `ETA Principal Sanepar`, sis: "SAA", tipo: "Estação de Tratamento de Água (ETA)", lat: lat + 0.016, lng: lng + 0.020, forma: "quadrado", cor: "#33FF00", origem: "PRSB Concepção" },
+        { id: "CAP-01", nome: `Captação Superficial IAT`, sis: "SAA", tipo: "Captação de Manancial", lat: lat + 0.024, lng: lng + 0.028, forma: "pentagono", cor: "#0000FF", origem: "PRSB Concepção" },
+        { id: "RES-01", nome: `Reservatório de Distribuição`, sis: "SAA", tipo: "Reservatório de Água Potável", lat: lat + 0.004, lng: lng + 0.006, forma: "circulo", cor: "#0000FF", origem: "PRSB Concepção" }
+      ];
+    }
+
+    // Renderizar Polígonos de Mananciais Protegidos se camada água ativa
+    if (this.camadasAtivas.agua && geo.mananciais.length > 0) {
+      geo.mananciais.forEach(manFeat => {
+        const manLayer = L.geoJSON(manFeat, {
+          style: {
+            color: "#0284C7",
+            weight: 2,
+            opacity: 0.9,
+            fillColor: "#38BDF8",
+            fillOpacity: 0.22
+          }
+        });
+        const props = manFeat.properties || {};
+        manLayer.bindPopup(`
+          <div style="font-family:'Public Sans',sans-serif; min-width:220px">
+            <span class="pill ok" style="margin-bottom:4px">Manancial Protegido (GeoPR / IAT)</span>
+            <h4 style="margin:2px 0 4px;font-size:14px">${props.manancial || "Bacia de Manancial"}</h4>
+            <p style="margin:0;font-size:12px;color:#555">
+              Município: <b>${props.municipio || nomeMun} (PR)</b><br>
+              Bacia Hidrográfica: <b>${props.bacia || "Iguaçu / Tibagi / Ivaí"}</b><br>
+              Área de Drenagem: <b>${props.area_km2 ? props.area_km2 + " km²" : "—"}</b><br>
+              Vazão Outorgada: <b>${props.vazao ? props.vazao + " L/s" : "—"}</b><br>
+              Status Outorga: <b>${props.status || "Deferida IAT"}</b>
+            </p>
+          </div>
+        `);
+        this.layerGroup.addLayer(manLayer);
+      });
+    }
+
+    const todosAtivos = [];
+    if (this.camadasAtivas.esgoto) todosAtivos.push(...ativosSES);
+    if (this.camadasAtivas.agua) todosAtivos.push(...ativosSAA);
+
+    todosAtivos.forEach(a => {
       const iconeHtml = `
         <div class="mk" style="background:${a.cor}; border:2px solid #fff; border-radius:${a.forma === 'quadrado' ? '4px' : a.forma === 'triangulo' ? '30%' : '50%'}; display:grid; place-items:center; box-shadow:0 2px 6px rgba(0,0,0,0.6)" title="${a.nome}">
           <span style="font-size:10px;font-weight:700;color:#fff">${a.id.split('-')[0]}</span>
         </div>
       `;
 
-      const mkr = L.marker([pLat, pLng], {
+      const mkr = L.marker([a.lat, a.lng], {
         icon: L.divIcon({ className: '', html: iconeHtml, iconSize: [26, 26], iconAnchor: [13, 13] })
       });
 
+      const detalheExtra = a.manancial
+        ? `Manancial: <b>${a.manancial}</b><br>Situação: <b>${a.situacao}</b><br>`
+        : a.rio
+        ? `Rio Receptor: <b>${a.rio}</b><br>Vazão Outorgada: <b>${a.vazao}</b><br>Portaria: <b>${a.portaria}</b><br>`
+        : "";
+
       mkr.bindPopup(`
-        <div style="font-family:'Public Sans',sans-serif; min-width:210px">
+        <div style="font-family:'Public Sans',sans-serif; min-width:220px">
           <span class="pill ${a.sis === 'SES' ? 'pend' : 'ok'}" style="margin-bottom:4px">${a.sis === 'SES' ? 'Esgotamento Sanitário' : 'Abastecimento de Água'}</span>
           <h4 style="margin:2px 0 4px;font-size:14px">${a.nome}</h4>
           <p style="margin:0;font-size:12px;color:#555">
             Código: <b>${a.id}</b><br>
             Tipo: <b>${a.tipo}</b><br>
-            Município: <b>${this.municipioAtual.nome} (PR)</b><br>
-            Concessão: <b>Sanepar / AGEPAR</b>
+            ${detalheExtra}
+            Município: <b>${nomeMun} (PR)</b><br>
+            Fonte: <b>${a.origem || "Sanepar / AGEPAR / IAT"}</b>
           </p>
         </div>
       `);
@@ -216,6 +341,23 @@ window.OPS_MAPA = {
       relMkr.bindPopup(`<b>Relato Cidadão</b><br>Vazamento na rede de distribuição reportado por morador.<br><small>1 confirmação comunitária</small>`);
       this.layerGroup.addLayer(relMkr);
     }
+
+    // Atualizar contadores nos botões de camadas
+    this.atualizarChipsContadores(ativosSES.length, ativosSAA.length, geo.mananciais.length);
+  },
+
+  atualizarChipsContadores: function(nEsgoto, nAgua, nMananciais) {
+    const camadasDiv = document.getElementById("camadas");
+    if (!camadasDiv) return;
+    const btnEsg = camadasDiv.querySelector('[data-camada="esgoto"]');
+    const btnAgu = camadasDiv.querySelector('[data-camada="agua"]');
+    if (btnEsg) {
+      btnEsg.innerHTML = `<span class="sw" style="background:var(--eixo-esgoto)"></span>Esgoto ${nEsgoto}`;
+    }
+    if (btnAgu) {
+      const txtMan = nMananciais > 0 ? ` (+${nMananciais} mananciais)` : "";
+      btnAgu.innerHTML = `<span class="sw" style="background:var(--eixo-agua)"></span>Água ${nAgua}${txtMan}`;
+    }
   },
 
   setupControles: function() {
@@ -224,8 +366,8 @@ window.OPS_MAPA = {
 
     // Chips no mesmo formato do OPS Pará
     camadasDiv.innerHTML = `
-      <button class="chip" data-camada="esgoto" aria-pressed="true"><span class="sw" style="background:var(--eixo-esgoto)"></span>Esgoto 4</button>
-      <button class="chip" data-camada="agua" aria-pressed="true"><span class="sw" style="background:var(--eixo-agua)"></span>Água 3</button>
+      <button class="chip" data-camada="esgoto" aria-pressed="true"><span class="sw" style="background:var(--eixo-esgoto)"></span>Esgoto</button>
+      <button class="chip" data-camada="agua" aria-pressed="true"><span class="sw" style="background:var(--eixo-agua)"></span>Água</button>
       <button class="chip" data-camada="relatos" aria-pressed="true"><span class="sw" style="background:var(--trav)"></span>Relatos 1</button>
       <button class="chip" data-camada="setores" aria-pressed="false"><span class="sw" style="background:#0F766E"></span>Setores IBGE</button>
     `;
