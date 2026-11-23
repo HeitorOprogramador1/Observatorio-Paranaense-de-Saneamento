@@ -429,15 +429,17 @@ window.OPS_MAPA = {
         <span>${nomeSistema}</span>
       </div>
       <div class="leg-sec">
-        <table class="leg-matriz">
-          <thead>
-            <tr>
-              <th scope="col">Unidade</th>
-              ${LEG_SITUACOES.map(([, r]) => `<th scope="col">${r}</th>`).join("")}
-            </tr>
-          </thead>
-          <tbody>${linhas}</tbody>
-        </table>
+        <div class="leg-tabela-scroll">
+          <table class="leg-matriz">
+            <thead>
+              <tr>
+                <th scope="col">Unidade</th>
+                ${LEG_SITUACOES.map(([, r]) => `<th scope="col">${r}</th>`).join("")}
+              </tr>
+            </thead>
+            <tbody>${linhas}</tbody>
+          </table>
+        </div>
         <ul class="leg-lista">
           ${extras.map(([f, c, n]) => `<li>${simbolo(f, c)}<span>${n}</span></li>`).join("")}
         </ul>
