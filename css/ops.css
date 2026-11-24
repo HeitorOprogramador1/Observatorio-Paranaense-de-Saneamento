@@ -348,6 +348,7 @@ th.n,td.n{text-align:right}
   line-height:1 !important;
   padding:0 !important;
   margin:0 !important;
+  overflow:hidden !important;
 }
 .mk span{
   display:block !important;
@@ -357,6 +358,9 @@ th.n,td.n{text-align:right}
   font-size:10px !important;
   font-weight:700 !important;
   letter-spacing:-0.02em !important;
+  white-space:nowrap !important;
+  overflow:hidden !important;
+  text-overflow:clip !important;
 }
 
 /* ---------- gráficos ---------- */

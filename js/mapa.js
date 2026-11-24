@@ -170,9 +170,17 @@ window.OPS_MAPA = {
         const sis = norm(f.properties && f.properties.sistema);
         const man = norm(f.properties && f.properties.manancial);
         if (sis.includes(munNorm) || man.includes(munNorm) || distGraus(pLat, pLng, lat, lng) < 0.15) {
+          const mSigla = f.properties.sigla && f.properties.sigla.match(/\(([^)]+)\)/);
+          const cod = mSigla ? mSigla[1].trim() : `ETA-${idx + 1}`;
+          const nomeUnidade = f.properties.sigla
+            ? f.properties.sigla.replace(/\([^)]+\)/g, "").trim()
+            : "";
+          const nomeFinal = nomeUnidade || f.properties.sistema || `ETA ${nomeMun}`;
+
           etas.push({
-            id: f.properties.sigla ? f.properties.sigla.replace(/[()]/g, "").trim() : `ETA-${idx + 1}`,
-            nome: f.properties.sistema || `ETA ${nomeMun}`,
+            id: cod,
+            siglaRotulo: "ETA",
+            nome: nomeFinal,
             sis: "SAA",
             tipo: "Estação de Tratamento de Água (ETA)",
             manancial: f.properties.manancial || "Manancial Superficial",
@@ -300,9 +308,20 @@ window.OPS_MAPA = {
     if (this.camadasAtivas.agua) todosAtivos.push(...ativosSAA);
 
     todosAtivos.forEach(a => {
+      let rotulo = a.siglaRotulo;
+      if (!rotulo) {
+        if (a.tipo && a.tipo.includes("ETA")) rotulo = "ETA";
+        else if (a.tipo && a.tipo.includes("ETE")) rotulo = "ETE";
+        else if (a.tipo && a.tipo.includes("Elevatória")) rotulo = "EEE";
+        else if (a.tipo && a.tipo.includes("Captação")) rotulo = "CAP";
+        else if (a.tipo && a.tipo.includes("Reservatório")) rotulo = "RES";
+        else if (a.tipo && a.tipo.includes("Lançamento")) rotulo = "LAN";
+        else rotulo = a.id ? a.id.split('-')[0].slice(0, 3).toUpperCase() : "UNI";
+      }
+
       const iconeHtml = `
-        <div class="mk" style="background:${a.cor}; border:2px solid #fff; border-radius:${a.forma === 'quadrado' ? '4px' : a.forma === 'triangulo' ? '30%' : '50%'}; display:grid; place-items:center; box-shadow:0 2px 6px rgba(0,0,0,0.6)" title="${a.nome}">
-          <span style="font-size:10px;font-weight:700;color:#fff">${a.id.split('-')[0]}</span>
+        <div class="mk" style="background:${a.cor}; border:2px solid #fff; border-radius:${a.forma === 'quadrado' ? '4px' : a.forma === 'triangulo' ? '30%' : '50%'}; display:flex; align-items:center; justify-content:center; box-shadow:0 2px 6px rgba(0,0,0,0.6)" title="${a.nome} (${a.id})">
+          <span style="font-size:10px;font-weight:700;color:#fff;line-height:1;text-align:center">${rotulo}</span>
         </div>
       `;
 
